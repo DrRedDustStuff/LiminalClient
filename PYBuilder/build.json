@@ -1,0 +1,6 @@
+{
+    "icon-file":"./src/files/icon.ico",
+    "script":"./src/main.py",
+    "save-as":"NEO EML",
+    "gui":"True"
+}

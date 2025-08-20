@@ -1,0 +1,46 @@
+TODO - Escape The Backrooms Modloader (Inspired by Modrinth)
+
+1. Project Setup
+    - Initialize repository and folder structure
+    - Set up basic README and documentation
+
+2. Core Features
+    - Mod listing: Display available mods with details (name, author, version, description)
+    - Mod download & install: Allow users to download and install mods
+    - Mod update: Check for and apply updates to installed mods
+    - Mod removal: Uninstall mods cleanly
+
+3. User Interface
+    - Design main UI similar to Modrinth (modern, clean, intuitive)
+    - Implement mod search and filter functionality
+    - Add mod detail pages with screenshots, changelogs, and download stats
+
+4. Mod Management
+    - Support for mod dependencies and compatibility checks
+    - Enable mod enable/disable toggling
+    - Show installed mods and their status
+
+5. Backend Integration
+    - Connect to a mod database or API (self-hosted or third-party)
+    - Implement mod upload and moderation tools (for creators)
+
+6. Security & Validation
+    - Validate mod files before installation
+    - Sandbox mod execution to prevent malicious behavior
+
+7. Community Features
+    - User accounts and authentication
+    - Ratings, reviews, and comments for mods
+
+8. Testing & QA
+    - Unit and integration tests for core features
+    - Beta release and feedback collection
+
+9. Documentation & Release
+    - Write user and developer guides
+    - Prepare for public release
+
+10. Future Enhancements
+     - Support for modpacks
+     - Automatic conflict resolution
+     - Localization/multi-language support

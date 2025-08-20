@@ -1,0 +1,30 @@
+{
+    "cSpell.words": [
+        "APPWINDOW",
+        "customtkinter",
+        "EXSTYLE",
+        "FRAMECHANGED",
+        "highlightthickness",
+        "LOADFROMFILE",
+        "MEIPASS",
+        "Modloader",
+        "Modpack",
+        "modpacks",
+        "Modrinth",
+        "NOMOVE",
+        "NOSIZE",
+        "NOZORDER",
+        "onefile",
+        "padx",
+        "pady",
+        "relheight",
+        "relwidth",
+        "relx",
+        "rheight",
+        "rwidth",
+        "SETICON",
+        "Tabview",
+        "TOOLWINDOW",
+        "topbar"
+    ]
+}
