@@ -7,6 +7,6 @@ class PHome(ctk.CTkFrame):
         self.create_widgets()
     
     def create_widgets(self):
-        self.l_window_label = ctk.CTkLabel(self)
-        self.l_window_label.place(relx=1,rely=1, relwidth=1,relheight=1)
+        self.l_window_label = ctk.CTkLabel(self, text="Home")
+        self.l_window_label.place(relx=0,rely=0, relwidth=1,relheight=1)
     

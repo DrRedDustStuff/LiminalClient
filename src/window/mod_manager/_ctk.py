@@ -7,8 +7,11 @@ import customtkinter as ctk
 from .mod import Mod
 
 class ModDisplay(ctk.CTkFrame):
-    def __init__(self, master: Any, width: int = 200, height: int = 200, **kwargs):
-        super().__init__(master, width, height, 0, 0, "transparent", "transparent", None, None, None, **kwargs)
+    def __init__(self, master: Any, modpage_function, mod:Mod | None = None, width: int = 200, height: int = 200, **kwargs):
+        super().__init__(master, width, height, 16, 2, "transparent", "transparent", None, None, None, **kwargs)
+        self.modpage_function = modpage_function
+        self.mod: Mod | None = None
+        if mod: self.mod = mod
         self.create_widgets(self)
 
     def create_widgets(self, master):
@@ -19,8 +22,14 @@ class ModDisplay(ctk.CTkFrame):
         # - sub-master
         # -- widget
 
+        # mod select checkbox
+        self.cb_select = ctk.CTkCheckBox(self, width=16,height=16, text="")
+        self.cb_select.pack(side="left", padx=(12,5),pady=5)
+
         # mod icon image-label
-        self.il_mod_icon = ctk.CTkButton(master, width=32, height=32, text="", image=None)
+        self.il_mod_icon = ctk.CTkButton(master, width=64, height=64, text="", image=None)
+        if self.mod:
+            self.il_mod_icon.configure(False, command=lambda: self.modpage_function("Modpage", self.mod))
         self.il_mod_icon.pack(side="left", padx=5,pady=5)
 
         # mod name/author container
@@ -48,7 +57,7 @@ class ModDisplay(ctk.CTkFrame):
         # more options ...
     
     def set_mod(self, mod:Mod) -> None:
-        self.mod: Mod = mod
+        self.mod = mod
         self.set_values(mod_author=self.mod.author)
     
     def set_values(self, **kwargs):

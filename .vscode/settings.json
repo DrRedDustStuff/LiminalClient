@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "apikey",
         "APPWINDOW",
         "customtkinter",
+        "Eqnex",
+        "escapethebackrooms",
         "EXSTYLE",
         "FRAMECHANGED",
         "highlightthickness",
@@ -13,12 +16,14 @@
         "Modloader",
         "Modpack",
         "modpacks",
+        "Modpage",
         "Modrinth",
         "MODVERSION",
         "mvfc",
         "NOMOVE",
         "NOSIZE",
         "NOZORDER",
+        "omaster",
         "onefile",
         "padx",
         "pady",
@@ -30,6 +35,7 @@
         "SETICON",
         "Tabview",
         "TOOLWINDOW",
-        "topbar"
+        "topbar",
+        "transparentcolor"
     ]
 }

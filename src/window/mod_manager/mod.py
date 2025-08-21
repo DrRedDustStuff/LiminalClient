@@ -20,8 +20,7 @@ class Mod:
 def mod_from_json(jsn:dict[str, str | list[str]]) -> Mod:
     """creates a Mod class from json data"""
     return Mod(jsn["name"],jsn["author"],jsn.get("dependencies")) # type: ignore ## str | list[str] error ##
-    
-    
+
 class ModManager:
     def __init__(self, path:str|None = None) -> None:
         self.path: str

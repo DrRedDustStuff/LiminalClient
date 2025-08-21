@@ -5,6 +5,9 @@ from PIL import Image
 from window.settings import PSettings
 from window.home import PHome
 from window.modpack import PModpack
+from window.modpage import PModpage
+
+from window.mod_manager.mod import Mod
 
 class Anchor:
     North:Literal["n"]="n"
@@ -39,18 +42,20 @@ class Main(ctk.CTk):
         self.resizable(True, True)
         self.minsize(800, 500)
 
-        self.container_frame = ctk.CTkFrame(self, fg_color=get_theme_color(self.theme_manager.theme["CTk"]["fg_color"]))
+        self.container_frame = ctk.CTkFrame(self, fg_color=get_theme_color(["gray78", "gray24"]))
         self.container_frame.place(x=0,y=0, relwidth=1,relheight=1)
 
         self._drag_data = {"x": 0, "y": 0} # contains x/y position of the window
 
-        self.create_widgets(self.container_frame)
-
         # Custom title-bar
         self.overrideredirect(True)
+        self.attributes("-transparentcolor", "white")
+        self.configure(bg="white")
         self.force_taskbar_icon()
         self.attributes("-topmost", True)
         self.after(10, lambda: self.attributes("-topmost", False))
+
+        self.create_widgets(self.container_frame)
 
     def force_taskbar_icon(self):
         hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
@@ -124,7 +129,8 @@ class Main(ctk.CTk):
         rheight: float = (win_h - start_y) / win_h
         self.content_frame.place(x=start_x, y=start_y, relwidth=rwidth, relheight=rheight)
 
-    def show_tab(self, tab_name):
+    def show_tab(self, tab_name, mod:Mod | None = None):
+        print("Tab request for",tab_name)
         for widget in self.content_frame.winfo_children():
             widget.destroy()
         if tab_name == "Home":
@@ -133,6 +139,8 @@ class Main(ctk.CTk):
             PSettings(self.content_frame).place(relx=0, rely=0, relwidth=1, relheight=1)
         elif tab_name == "Modpack":
             PModpack(self.content_frame).place(relx=0, rely=0, relwidth=1, relheight=1)
+        elif tab_name == "Modpage" and mod:
+            PModpage(self.content_frame, mod).place(relx=0, rely=0, relwidth=1, relheight=1) 
 
 
     def toggle_fullscreen(self):
