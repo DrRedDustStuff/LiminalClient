@@ -1,0 +1,13 @@
+{
+    "mod_name": "MODNAME",
+    "version": "MODVERSION",
+    "description": "MODDESCRIPTION",
+    "author": "MODAUTHOR",
+    "modloader": "MODLOADER",
+    "dependencies": [
+        {
+            "mod_name":"REQUIRED_MOD_BY_NAME1",
+            "version": ["REQUIRED_MOD_VERSION_MIN", "REQUIRED_MOD_VERSION_MAX"]
+        }
+    ]
+}

@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "apikey",
+        "APPNAME",
         "APPWINDOW",
         "customtkinter",
         "Eqnex",
@@ -12,6 +13,7 @@
         "MEIPASS",
         "mnac",
         "MODAUTHOR",
+        "MODDESCRIPTION",
         "MODFILENAME",
         "Modloader",
         "Modpack",
