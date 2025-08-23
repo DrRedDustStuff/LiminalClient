@@ -40,7 +40,7 @@ class CTkCreator(ctk.CTkScrollableFrame):
                     self.widget_code(parent, node)
                 case _:
                     pass  # unhandled types
-            ctk.CTkFrame(self, 2, 5, 50).pack(pady=4, fill="x", anchor="w") # add breaker line
+            #ctk.CTkFrame(self, 2, 5, 50).pack(pady=4, fill="x", anchor="w") # add breaker line, unnecessary as html can do the same thing
 
     # ----------------------------
     # Widget implementations
@@ -87,16 +87,18 @@ class CTkCreator(ctk.CTkScrollableFrame):
 
     def widget_paragraph(self, parent: Any, node: dict[str, Any]):
         # Use CTkTextbox to allow inline styling
-        textbox = ctk.CTkTextbox(parent, width=500, height=1)
+        textbox = ctk.CTkTextbox(parent, width=500, height=1, activate_scrollbars=False)
         textbox.pack(anchor="w", fill="x")
         tw: Text = textbox._textbox  # underlying Text widget
 
-        font_size = 12
+        font_size = 11
 
         # Inline styles at the same heading size
+        tw.configure(font=("Arial", font_size))
         tw.tag_configure("bold",   font=("Arial",  font_size, "bold"))
         tw.tag_configure("italic", font=("Arial",  font_size, "italic"))
-        tw.tag_configure("code",   font=("Courier", font_size - 2), background=self._apply_appearance_mode(["#A7A7A7","#535353"]), selectbackground="#0062B3")
+        tw.tag_configure("code",   font=("Courier", font_size), background=self._apply_appearance_mode(["#A7A7A7","#535353"]), selectbackground="#0062B3")
+        tw.tag_configure("link",   font=("Arial", font_size), foreground="#0ba3e9", underline=True)
 
         # Insert children with inline styling (expects text in node["raw"])
         for child in node.get("children", []):
@@ -109,12 +111,12 @@ class CTkCreator(ctk.CTkScrollableFrame):
         # Resize height to fit content (pixels)
         textbox.update_idletasks()
         line_h = tkfont.Font(font=("Arial", font_size)).metrics("linespace")
-        #try:
-        #count = tw.count("1.0", CPOS, "displaylines")
-        #lines = count[0] if count else 1
-        #except Exception:
+        try:
+            count = tw.count("1.0", CPOS, "displaylines")
+            lines = count[0] if count else 1
+        except Exception:
             # Fallback if 'displaylines' unsupported
-        lines = int(tw.index(END).split(".")[0])
+            lines = int(tw.index(END).split(".")[0])
         textbox.configure(height=max(line_h * max(1, lines), line_h))
         print(max(line_h * max(1, lines), line_h))
         print(lines)
@@ -160,7 +162,7 @@ class CTkCreator(ctk.CTkScrollableFrame):
                 self.insert_inline_text(text_widget, c, heading=heading, font_size=font_size)
             end = text_widget.index(CPOS)
             # example styling for links (inherits base size)
-            text_widget.tag_configure("link", underline=True)
+            
             text_widget.tag_add("link", start, end)
             print(f"index from {start} to {end}, link")
         elif ntype == "softbreak":

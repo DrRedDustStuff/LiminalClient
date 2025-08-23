@@ -1,7 +1,14 @@
 import customtkinter as ctk
+import tkinter as tk
 from typing import Literal, Tuple, Any
 from PIL import Image
 from time import sleep
+from threading import Thread
+
+from window.pages.home import PHome
+from window.pages.modpack import PModpack
+from window.pages.modpage import PModpage
+from window.pages.settings import PSettings
 
 def sleepm(ms:int):
     if ms > 0:
@@ -25,6 +32,12 @@ class Anchor:
     Center:Literal["center"]="center"
 
 import ctypes
+
+# ------------- #
+# Helper        #
+def color_by_mode(color:list[str] | tuple[str, str], mode:Literal["light", "dark"] | str):
+    return color[0] if mode == "light" else color[1]
+
 
 # Constants from Win32 API
 GWL_EXSTYLE = -20
@@ -90,11 +103,26 @@ class FTFrame(ctk.CTkFrame):
 
         self.place(x=self.sx, y=self.sy, relwidth=rwidth, relheight=rheight)
 
+# Loading window should be implemented
+class LoadingWindow(ctk.CTkToplevel):
+    def __init__(self, master, color_mode:Literal["light", "dark"] | str, **kwargs):
+        super().__init__(master, fg_color=color_by_mode(["#c0c0c0", "#303030"], color_mode), **kwargs)
+        self.title("Loading")
+        self.geometry(f"300x300+{int(self.winfo_screenwidth() / 2) - 150}+{int(self.winfo_screenheight() / 2) - 150}")
+
+        #self.overrideredirect(True)
+    
+    def done(self):
+        print("done loading")
+        self.destroy()
+
 # Main window
 class Main(ctk.CTk):
     def __init__(self, **kwargs):
         super().__init__(fg_color="gray1", **kwargs)
         self.theme_manager = ctk.ThemeManager()
+
+        self.loading_window = LoadingWindow(self, self._get_appearance_mode())
 
         self.iconbitmap("./files/icon.ico")
         self.title("Neo EML")
@@ -102,7 +130,7 @@ class Main(ctk.CTk):
         self.resizable(True, True)
         self.minsize(800, 500)
 
-        self._drag_data = {"x": 0, "y": 0} # contains x/y position of the window
+        self._drag_data: dict[str, int] = {"x": 0, "y": 0} # contains x/y position of the window
 
         # Custom title-bar
         self.overrideredirect(True)
@@ -121,9 +149,11 @@ class Main(ctk.CTk):
         self.pack_propagate(False)
         self.grid_propagate(False)
 
-        self.tabs = {}
+        self.tabs: dict[Any, PHome | PModpack | PModpage | PSettings | None] = {}
         self.current_tab = None
         self.create_widgets(self.container_frame)
+
+        self.loading_window.done()
 
     def force_taskbar_icon(self):
         hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
@@ -140,6 +170,12 @@ class Main(ctk.CTk):
                                         0x0027)  # SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_FRAMECHANGED
 
     def create_widgets(self, master):
+        # to increase loading times the content frame is placed before the top bar
+        self.content_frame = FTFrame(master, sx=75, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
+        self.content_frame.place(rely=0, relwidth=1)
+
+        Thread(target=self.preload_tabs).start() # preload tabs
+
         # Custom top bar
         self.top_bar = ctk.CTkFrame(master, height=40, corner_radius=0, fg_color="transparent")
         self.top_bar.place(relx=0.5, y=0, relwidth=0.989, anchor=Anchor.North)
@@ -182,18 +218,27 @@ class Main(ctk.CTk):
         self.btn_modpack = ctk.CTkButton(self.tab_frame, width=2, text="Modpack", command=lambda: self.show_tab("Modpack"))
         self.btn_modpack.pack(fill="x", pady=5, padx=5)
 
-        # Content frame scaling from (start_x, start_y) to bottom-right
-        self.content_frame = FTFrame(master, sx=75, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
-        self.content_frame.place(rely=0, relwidth=1)
-
         self.show_tab("Modpack")
 
-    def show_tab(self, tab_name: Literal["Home", "Settings", "Modpack", "Modpage"], mod: Mod | None = None):
-        print("Tab request for", tab_name)
+    def preload_tabs(self):
+        while not self.show_tab("Home"):     continue # wait for homepage to load
+        while not self.show_tab("Modpack"):  continue # wait for homepage to load
+        while not self.show_tab("Settings"): continue # wait for homepage to load
+
+
+    def show_tab(self, tab_name: Literal["Home", "Settings", "Modpack", "Modpage"], mod: Mod | None = None) -> None | bool:
+        print("\nTab request for", tab_name)
+
+        if tab_name == self.current_tab:
+            print("tab already open")
+            return True # thread safety
 
         # Hide the currently visible tab
         if self.current_tab in self.tabs:
-            self.tabs[self.current_tab].place_forget()
+            tab = self.tabs[self.current_tab]
+            if tab:
+                print("lowering",self.current_tab)
+                tab.lower()
         elif self.current_tab == "Modpage":
             # Destroy only the dynamic Modpage
             if hasattr(self, "_current_modpage") and self._current_modpage and self._current_modpage.winfo_exists():
@@ -204,7 +249,7 @@ class Main(ctk.CTk):
         if tab_name == "Modpage" and mod:
             frame = PModpage(self.content_frame, mod)
             frame.place()
-            self._current_modpage = frame
+            self._current_modpage: PModpage | None = frame
             self.current_tab = "Modpage"
             return
 
@@ -217,12 +262,20 @@ class Main(ctk.CTk):
             elif tab_name == "Modpack":
                 self.tabs[tab_name] = PModpack(self.content_frame)
             else:
-                return
+                return True # thread safety
 
         # Show cached frame (not destroyed)
         frame = self.tabs[tab_name]
-        frame.place()
+        if frame:
+            if frame.place_info() == {}:
+                print("placing",tab_name)
+                frame.place()
+            else:
+                print("lifting",tab_name)
+                frame.lift()
+                
         self.current_tab = tab_name
+        return True
 
     def toggle_fullscreen(self):
         if not hasattr(self, "_is_fullscreen"):
