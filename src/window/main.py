@@ -118,6 +118,15 @@ class LoadingWindow(ctk.CTkToplevel):
 
 # Main window
 class Main(ctk.CTk):
+    # ---------------- #
+    # Thread-safety
+
+    def wait_on_thread(self, thread:Thread):
+        if thread.is_alive():
+            self.after(20, lambda: self.wait_on_thread(thread))
+        else:
+            print(f"Thread {thread.name} is done")
+
     def __init__(self, **kwargs):
         super().__init__(fg_color="gray1", **kwargs)
         self.theme_manager = ctk.ThemeManager()
@@ -153,6 +162,7 @@ class Main(ctk.CTk):
         self.current_tab = None
         self.create_widgets(self.container_frame)
 
+        self.wait_on_thread(self.t_preload_tabs)
         self.loading_window.done()
 
     def force_taskbar_icon(self):
@@ -174,7 +184,8 @@ class Main(ctk.CTk):
         self.content_frame = FTFrame(master, sx=75, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
         self.content_frame.place(rely=0, relwidth=1)
 
-        Thread(target=self.preload_tabs).start() # preload tabs
+        self.t_preload_tabs = Thread(target=self.preload_tabs)
+        self.t_preload_tabs.start() # preload tabs
 
         # Custom top bar
         self.top_bar = ctk.CTkFrame(master, height=40, corner_radius=0, fg_color="transparent")
@@ -222,9 +233,8 @@ class Main(ctk.CTk):
 
     def preload_tabs(self):
         while not self.show_tab("Home"):     continue # wait for homepage to load
-        while not self.show_tab("Modpack"):  continue # wait for homepage to load
-        while not self.show_tab("Settings"): continue # wait for homepage to load
-
+        while not self.show_tab("Modpack"):  continue # wait for modpack to load
+        while not self.show_tab("Settings"): continue # wait for settings to load
 
     def show_tab(self, tab_name: Literal["Home", "Settings", "Modpack", "Modpage"], mod: Mod | None = None) -> None | bool:
         print("\nTab request for", tab_name)
