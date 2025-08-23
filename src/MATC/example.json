@@ -1,0 +1,81 @@
+{
+  "type": "document",
+  "children": [
+    {
+      "type": "heading",
+      "level": 1,
+      "children": [
+        { "type": "text", "content": "Heading Text" }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "children": [
+        { "type": "text", "content": "Some paragraph text " },
+        { "type": "strong", "children": [{ "type": "text", "content": "bold" }] },
+        { "type": "text", "content": " and " },
+        { "type": "em", "children": [{ "type": "text", "content": "italic" }] },
+        { "type": "text", "content": "." }
+      ]
+    },
+    {
+      "type": "blockquote",
+      "children": [
+        { "type": "paragraph", "children": [{ "type": "text", "content": "Quoted text" }] }
+      ]
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "start": null,
+      "children": [
+        {
+          "type": "listItem",
+          "children": [
+            { "type": "paragraph", "children": [{ "type": "text", "content": "List item 1" }] }
+          ]
+        },
+        {
+          "type": "listItem",
+          "children": [
+            { "type": "paragraph", "children": [{ "type": "text", "content": "List item 2" }] }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "thematicBreak"
+    },
+    {
+      "type": "link",
+      "href": "https://example.com",
+      "title": "Optional title",
+      "children": [{ "type": "text", "content": "Example Link" }]
+    },
+    {
+      "type": "image",
+      "src": "image.png",
+      "alt": "Alt text",
+      "title": "Optional title"
+    },
+    {
+      "type": "inlineCode",
+      "content": "x = 5"
+    },
+    {
+      "type": "em",
+      "children": [{ "type": "text", "content": "italic text" }]
+    },
+    {
+      "type": "strong",
+      "children": [{ "type": "text", "content": "bold text" }]
+    },
+    {
+      "type": "strikethrough",
+      "children": [{ "type": "text", "content": "strikethrough" }]
+    },
+    {
+      "type": "lineBreak"
+    }
+  ]
+}

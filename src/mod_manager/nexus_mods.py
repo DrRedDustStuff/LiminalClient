@@ -102,6 +102,6 @@ def load_mod_image(mod_jsn:dict[str, Any]) -> ImageFile:
     response.raise_for_status()
     return Image.open(BytesIO(response.content))
 
-nm = NexusMods(GAME, API_KEY, "Neo-EML")
+#nm = NexusMods(GAME, API_KEY, "Neo-EML")
 
-print(nm.fetch_by_id(7))
+#print(nm.fetch_by_id(7))

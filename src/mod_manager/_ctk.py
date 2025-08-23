@@ -1,5 +1,5 @@
 """CustomTkinter Integration
-: special case development"""
+<br /><b> *(special case development)</b>"""
 
 from typing import Any
 import customtkinter as ctk

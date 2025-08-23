@@ -1,13 +1,17 @@
 import customtkinter as ctk
-from typing import Literal
+from typing import Literal, Tuple, Any
 from PIL import Image
+from time import sleep
 
-from window.settings import PSettings
-from window.home import PHome
-from window.modpack import PModpack
-from window.modpage import PModpage
+def sleepm(ms:int):
+    if ms > 0:
+        sleep(ms / 1000)
+    else:
+        print("nice try! you cant make me divide by zero")
 
-from window.mod_manager.mod import Mod
+from .pages import *
+
+from mod_manager.mod import Mod
 
 class Anchor:
     North:Literal["n"]="n"
@@ -18,6 +22,7 @@ class Anchor:
     SouthWest:Literal["sw"]="sw"
     West:Literal["w"]="w"
     NorthWest:Literal["nw"]="nw"
+    Center:Literal["center"]="center"
 
 import ctypes
 
@@ -26,14 +31,69 @@ GWL_EXSTYLE = -20
 WS_EX_APPWINDOW = 0x00040000
 WS_EX_TOOLWINDOW = 0x00000080
 
-# helper
-def get_theme_color(color:list[str]) -> str:
-    return color[0] if ctk.get_appearance_mode() == "dark" else color[1]
+class FTFrame(ctk.CTkFrame):
+    def __init__(self, master: Any, 
+                 sx: int = 200, sy: int = 200,
+                 ex: int | None = None, ey: int | None = None,   # absolute mode
+                 ex_offset: int | None = None, ey_offset: int | None = None,  # offset mode
+                 corner_radius: int | str | None = None, 
+                 border_width: int | str | None = None,
+                 bg_color: str | Tuple[str, str] = "transparent", 
+                 fg_color: str | Tuple[str, str] | None = None, 
+                 border_color: str | Tuple[str, str] | None = None,
+                 background_corner_colors: Tuple[str | Tuple[str, str]] | None = None, 
+                 overwrite_preferred_drawing_method: str | None = None, 
+                 **kwargs):
+        
+        super().__init__(master, 
+                         corner_radius=corner_radius,
+                         border_width=border_width,
+                         bg_color=bg_color,
+                         fg_color=fg_color,
+                         border_color=border_color,
+                         background_corner_colors=background_corner_colors,
+                         overwrite_preferred_drawing_method=overwrite_preferred_drawing_method,
+                         **kwargs)
+
+        # Save config
+        self.sx, self.sy = sx, sy
+        self.ex, self.ey = ex, ey
+        self.ex_offset, self.ey_offset = ex_offset, ey_offset
+
+        self._place_frame()
+
+        # Auto-update on resize
+        self.master.bind("<Configure>", lambda event: self.after(20, self._place_frame))
+
+    def _place_frame(self):
+        win_w = self.master.winfo_width()
+        win_h = self.master.winfo_height()
+
+        if win_w < self.sx + 10 or win_h < self.sy + 10:
+            return
+
+        # resolve ex
+        if self.ex is not None:
+            ex = self.ex
+        else:
+            ex = win_w - (self.ex_offset or 0)
+
+        # resolve ey
+        if self.ey is not None:
+            ey = self.ey
+        else:
+            ey = win_h - (self.ey_offset or 0)
+
+        # relative sizes
+        rwidth = (ex - self.sx) / win_w
+        rheight = (ey - self.sy) / win_h
+
+        self.place(x=self.sx, y=self.sy, relwidth=rwidth, relheight=rheight)
 
 # Main window
 class Main(ctk.CTk):
-    def __init__(self, fg_color=None, **kwargs):
-        super().__init__(fg_color=fg_color, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(fg_color="gray1", **kwargs)
         self.theme_manager = ctk.ThemeManager()
 
         self.iconbitmap("./files/icon.ico")
@@ -42,19 +102,27 @@ class Main(ctk.CTk):
         self.resizable(True, True)
         self.minsize(800, 500)
 
-        self.container_frame = ctk.CTkFrame(self, fg_color=get_theme_color(["gray78", "gray24"]))
-        self.container_frame.place(x=0,y=0, relwidth=1,relheight=1)
-
         self._drag_data = {"x": 0, "y": 0} # contains x/y position of the window
 
         # Custom title-bar
         self.overrideredirect(True)
-        self.attributes("-transparentcolor", "white")
-        self.configure(bg="white")
         self.force_taskbar_icon()
         self.attributes("-topmost", True)
         self.after(10, lambda: self.attributes("-topmost", False))
+        self.configure(bg="gray1")
+        self.configure(fg="gray1")
+        self.wm_attributes("-transparentcolor", "gray1")
 
+        self.container_frame = ctk.CTkFrame(self,
+                                            fg_color="gray25",#self._apply_appearance_mode(["gray78", "gray24"]),
+                                            corner_radius=8
+                                            )
+        self.container_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
+        self.pack_propagate(False)
+        self.grid_propagate(False)
+
+        self.tabs = {}
+        self.current_tab = None
         self.create_widgets(self.container_frame)
 
     def force_taskbar_icon(self):
@@ -71,10 +139,11 @@ class Main(ctk.CTk):
         ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0,
                                         0x0027)  # SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_FRAMECHANGED
 
-    def create_widgets(self, master, start_x=80, start_y=42):
+    def create_widgets(self, master):
         # Custom top bar
-        self.top_bar = ctk.CTkFrame(master, height=50, fg_color="transparent")
-        self.top_bar.place(x=0, y=0, relwidth=1)
+        self.top_bar = ctk.CTkFrame(master, height=40, corner_radius=0, fg_color="transparent")
+        self.top_bar.place(relx=0.5, y=0, relwidth=0.989, anchor=Anchor.North)
+        self.top_bar.pack_propagate(False)
 
         # Icon
         self.i_topbar_icon = ctk.CTkImage(Image.open("./files/icon.ico"),Image.open("./files/icon.ico"), (32, 32))
@@ -99,49 +168,61 @@ class Main(ctk.CTk):
         self.title_label.bind("<ButtonPress-1>", self._start_move)
         self.title_label.bind("<B1-Motion>", self._do_move)
 
-
         # Vertical tab buttons
-        self.tab_frame = ctk.CTkFrame(master, width=50, fg_color="transparent")
-        self.tab_frame.place(x=5, y=42, relheight=0.9)  # Move down to avoid overlap with top bar
+        self.tab_frame = FTFrame(master, sx=0,sy=40,ex=75,ey_offset=10, fg_color="transparent")
+        self.tab_frame.place(rely=0, relwidth=1)
+        self.tab_frame.pack_propagate(False)
 
         self.btn_home = ctk.CTkButton(self.tab_frame, width=2, text="Home", command=lambda: self.show_tab("Home"))
-        self.btn_home.pack(fill="x", pady=(0,5))
+        self.btn_home.pack(fill="x", pady=5, padx=5)
 
         self.btn_settings = ctk.CTkButton(self.tab_frame, width=2, text="Settings", command=lambda: self.show_tab("Settings"))
-        self.btn_settings.pack(fill="x", pady=5)
+        self.btn_settings.pack(fill="x", pady=5, padx=5)
 
         self.btn_modpack = ctk.CTkButton(self.tab_frame, width=2, text="Modpack", command=lambda: self.show_tab("Modpack"))
-        self.btn_modpack.pack(fill="x", pady=5)
+        self.btn_modpack.pack(fill="x", pady=5, padx=5)
 
         # Content frame scaling from (start_x, start_y) to bottom-right
-        self.content_frame = ctk.CTkFrame(master, fg_color="transparent")
-        self._place_content_frame(start_x, start_y)  # Move down for top bar
-        self.bind("<Configure>", lambda event: self._place_content_frame(start_x, start_y))
+        self.content_frame = FTFrame(master, sx=75, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
+        self.content_frame.place(rely=0, relwidth=1)
 
-        self.show_tab("Settings")
+        self.show_tab("Modpack")
 
-    def _place_content_frame(self, start_x, start_y):
-        win_w: int = self.winfo_width()
-        win_h: int = self.winfo_height()
-        if win_w < start_x + 10 or win_h < start_y + 10:
+    def show_tab(self, tab_name: Literal["Home", "Settings", "Modpack", "Modpage"], mod: Mod | None = None):
+        print("Tab request for", tab_name)
+
+        # Hide the currently visible tab
+        if self.current_tab in self.tabs:
+            self.tabs[self.current_tab].place_forget()
+        elif self.current_tab == "Modpage":
+            # Destroy only the dynamic Modpage
+            if hasattr(self, "_current_modpage") and self._current_modpage and self._current_modpage.winfo_exists():
+                self._current_modpage.destroy()
+                self._current_modpage = None
+
+        # Handle Modpage (always rebuilt)
+        if tab_name == "Modpage" and mod:
+            frame = PModpage(self.content_frame, mod)
+            frame.place()
+            self._current_modpage = frame
+            self.current_tab = "Modpage"
             return
-        rwidth: float = (win_w - start_x) / win_w
-        rheight: float = (win_h - start_y) / win_h
-        self.content_frame.place(x=start_x, y=start_y, relwidth=rwidth, relheight=rheight)
 
-    def show_tab(self, tab_name, mod:Mod | None = None):
-        print("Tab request for",tab_name)
-        for widget in self.content_frame.winfo_children():
-            widget.destroy()
-        if tab_name == "Home":
-            PHome(self.content_frame).place(relx=0, rely=0, relwidth=1, relheight=1)
-        elif tab_name == "Settings":
-            PSettings(self.content_frame).place(relx=0, rely=0, relwidth=1, relheight=1)
-        elif tab_name == "Modpack":
-            PModpack(self.content_frame).place(relx=0, rely=0, relwidth=1, relheight=1)
-        elif tab_name == "Modpage" and mod:
-            PModpage(self.content_frame, mod).place(relx=0, rely=0, relwidth=1, relheight=1) 
+        # Handle cached tabs
+        if tab_name not in self.tabs:
+            if tab_name == "Home":
+                self.tabs[tab_name] = PHome(self.content_frame)
+            elif tab_name == "Settings":
+                self.tabs[tab_name] = PSettings(self.content_frame)
+            elif tab_name == "Modpack":
+                self.tabs[tab_name] = PModpack(self.content_frame)
+            else:
+                return
 
+        # Show cached frame (not destroyed)
+        frame = self.tabs[tab_name]
+        frame.place()
+        self.current_tab = tab_name
 
     def toggle_fullscreen(self):
         if not hasattr(self, "_is_fullscreen"):
