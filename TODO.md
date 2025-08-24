@@ -1,4 +1,4 @@
-TODO - Escape The Backrooms Modloader (Inspired by Modrinth)
+## TODO - Escape The Backrooms Modloader (Inspired by Modrinth)
 
 1. Project Setup
     - Done.  Initialize repository and folder structure

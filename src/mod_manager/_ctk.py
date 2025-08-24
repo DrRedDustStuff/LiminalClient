@@ -6,6 +6,8 @@ import customtkinter as ctk
 
 from .mod import Mod
 
+# TODO
+# Cleanup -low priority
 class ModDisplay(ctk.CTkFrame):
     def __init__(self, master: Any, modpage_function, mod:Mod | None = None, width: int = 200, height: int = 200, **kwargs):
         super().__init__(master, width, height, 16, 2, "transparent", "transparent", None, None, None, **kwargs)
@@ -29,7 +31,7 @@ class ModDisplay(ctk.CTkFrame):
         # mod icon image-label
         self.il_mod_icon = ctk.CTkButton(master, width=64, height=64, text="", image=None)
         if self.mod:
-            self.il_mod_icon.configure(False, command=lambda: self.modpage_function("Modpage", self.mod))
+            self.il_mod_icon.configure(False, command=lambda: self.modpage_function("Modpage", False, self.mod))
         self.il_mod_icon.pack(side="left", padx=5,pady=5)
 
         # mod name/author container
