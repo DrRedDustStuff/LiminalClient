@@ -1,5 +1,10 @@
-.vscode/
-MODFOLDER/
-PYBuilder/
 mod data.txt
 test.md
+
+.vscode/
+.vscode/settings.json
+.vscode/launch.json
+
+PYBuilder/
+
+MODFOLDER/
