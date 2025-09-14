@@ -11,8 +11,8 @@ from os import getcwd
 from os.path import join, dirname
 
 class PModpage(Page):
-    def __init__(self, master: Any, mod:Mod):
-        super().__init__(master)
+    def __init__(self, master: Any, translation_manager, mod:Mod):
+        super().__init__(master, translation_manager)
         self.create_widgets(mod)
     
     def create_widgets(self, mod:Mod | None = None):

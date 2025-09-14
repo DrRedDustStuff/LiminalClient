@@ -1,15 +1,13 @@
 import customtkinter as ctk
-from customtkinter import CTkFont
+from customtkinter import CTkFont, CTkImage
 import tkinter as tk
 from typing import Literal, Tuple, Any, Callable, Iterable
 from PIL import Image
 from time import sleep
 from threading import Thread
 
-from window.pages.home import PHome
-from window.pages.modpack import PModpack
-from window.pages.modpage import PModpage
-from window.pages.settings import PSettings
+from .translation_manager import TranslationManager, TLabel, TButton
+from .container import Settings
 
 def sleepm(ms:int):
     if ms > 0:
@@ -36,9 +34,19 @@ import ctypes
 
 # ------------- #
 # Helper        #
+def get_file(file:str) -> str:
+    return f"files/{file}"
+
+def get_image(file:str, size:tuple[int, int], ld:bool = False) -> CTkImage:
+    """get image by file, file does not include .png
+    <br>ld: has light and dark version, if true -light or -dark is appended *(Not implemented)"""
+    return CTkImage(Image.open(f"files/images/{file}.png"), Image.open(f"files/images/{file}.png"), size)
+
 def color_by_mode(color:list[str] | tuple[str, str], mode:Literal["light", "dark"] | str):
     return color[0] if mode == "light" else color[1]
 
+def percentage_lose_precision(value:float) -> float:
+    return round(value * 1_000) / 1_000
 
 # Constants from Win32 API
 GWL_EXSTYLE = -20
@@ -148,18 +156,19 @@ class LoadingWindow(ctk.CTkToplevel):
         self.ic_l_sub_info.place(anchor=Anchor.North, relx=0.5,rely=0.375, relwidth=1, relheight=0.125)
 
         # in Frame: info bottom 12.5% height 0.75 ypos 100% width center anchor LoadingBar: loading percentage
-        self.lp_value = ctk.IntVar(self, 0, "LoadingProgressPercentage")
+        self.lp_value = ctk.DoubleVar(self, 0, "LoadingProgressPercentage")
         self.ic_lb_loading_percentage = ctk.CTkProgressBar(self.info_container, variable=self.lp_value)
         self.ic_lb_loading_percentage.place(anchor=Anchor.Center, relx=0.5,rely=0.625, relwidth=1, relheight=0.125)
 
     def add_percentage(self, amount:int):
         old_percent = self.lp_value.get()
-        self.lp_value.set(self.lp_value.get() + amount)
-        print(f"{old_percent}% -> {self.lp_value.get()}%")
+        if self.lp_value.get() < 100:
+            self.lp_value.set(percentage_lose_precision(self.lp_value.get() + (amount / 100) if amount > 0 else 0))
+        print(f"{old_percent * 100}% -> {self.lp_value.get() * 100}%")
     
     def set_percentage(self, value:int):
-        print(f"{self.lp_value.get()}% -> {value}")
-        self.lp_value.set(value)
+        print(f"{self.lp_value.get() * 100}% -> {value}")
+        self.lp_value.set((value / 100) if value > 0 else 0)
     
     def update_loading_info(self, info:str):
         self.ic_l_loading_info.configure(text=info)
@@ -168,6 +177,7 @@ class LoadingWindow(ctk.CTkToplevel):
     
     def done(self):
         print("done loading")
+        self.set_percentage(1)
         self.destroy()
 
 # Main window
@@ -194,10 +204,13 @@ class Main(ctk.CTk):
 
     def __init__(self, **kwargs):
         super().__init__(fg_color="gray1", **kwargs)
+        self.settings = Settings("s.inf")
+
         self.theme_manager = ctk.ThemeManager()
+        self.translation_manager = TranslationManager(self.settings.lang, "files/translation")
 
         self.loading_window = LoadingWindow(self, self._get_appearance_mode())
-        self.loading_window.update_loading_info("Initializing")
+        self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.initializing")) # Initializing
 
         self.iconbitmap("./files/icon.ico")
         self.title("Neo EML")
@@ -220,21 +233,27 @@ class Main(ctk.CTk):
                                             fg_color="gray25",#self._apply_appearance_mode(["gray78", "gray24"]),
                                             corner_radius=8
                                             )
-        self.container_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
         self.pack_propagate(False)
         self.grid_propagate(False)
-
-        self.loading_window.update_loading_info("Creating Widgets")
-        self.tabs: dict[Any, PHome | PModpack | PModpage | PSettings | None] = {}
-        self.current_tab = None
+        self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.creating_widgets")) # Creating Widgets
+        self.loading_window.add_percentage(25)
+        self.pages: dict[Any, PHome | PModpack | PModpage | PSettings | None] = {}
+        self.current_page = None
         self.create_widgets(self.container_frame)
-        self.loading_window.update_loading_info("Waiting on Subthread")
+        self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.waiting_subthread")) # Waiting on Subthread
+        self.loading_window.add_percentage(50)
 
-        self.on_thread_dead(self.t_preload_tabs, self.thread_preload_tabs_done)
+        self.on_thread_dead(self.t_preload_pages, self.thread_preload_pages_done)
     
-    def thread_preload_tabs_done(self):
-        self.show_tab("Modpack")
+    def thread_preload_pages_done(self):
+        self.show_page("Modpack")
         self.loading_window.done()
+
+        hiding_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="gray1")
+        self.container_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
+        hiding_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
+        
+        self.after(200, hiding_frame.destroy)
 
     def force_taskbar_icon(self):
         hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
@@ -252,12 +271,12 @@ class Main(ctk.CTk):
 
     def create_widgets(self, master:Any):
         # to increase loading times the content frame is placed before the top bar
-        self.content_frame = FTFrame(master, sx=75, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
+        self.content_frame = FTFrame(master, sx=64, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
         self.content_frame.place(rely=0, relwidth=1)
 
-        self.loading_window.update_sub_info("Creating Subthread")
-        self.t_preload_tabs = Thread(target=self.preload_tabs)
-        self.t_preload_tabs.start() # preload tabs
+        self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.creating_subthread")) # Creating Subthread
+        self.t_preload_pages = Thread(target=self.preload_pages)
+        self.t_preload_pages.start() # preload pages
 
         # Custom top bar
         self.top_bar = ctk.CTkFrame(master, height=40, corner_radius=0, fg_color="transparent")
@@ -287,78 +306,84 @@ class Main(ctk.CTk):
         self.title_label.bind("<ButtonPress-1>", self._start_move)
         self.title_label.bind("<B1-Motion>", self._do_move)
 
-        # Vertical tab buttons
-        self.tab_frame = FTFrame(master, sx=0,sy=40,ex=75,ey_offset=10, fg_color="transparent")
-        self.tab_frame.place(rely=0, relwidth=1)
-        self.tab_frame.pack_propagate(False)
+        # Vertical page buttons
+        self.page_frame = FTFrame(master, sx=0,sy=40,ex=64,ey_offset=10, fg_color="transparent")
+        self.page_frame.place(rely=0, relwidth=1)
+        self.page_frame.pack_propagate(False)
 
-        self.btn_home = ctk.CTkButton(self.tab_frame, width=2, text="Home", command=lambda: self.show_tab("Home"))
-        self.btn_home.pack(fill="x", pady=5, padx=5)
+        self.home_btn = ctk.CTkButton(self.page_frame, text="", width=2, image=get_image("home", (32,32)), command=lambda: self.show_page("Home"))
+        self.home_btn.pack(pady=5, padx=5)
 
-        self.btn_settings = ctk.CTkButton(self.tab_frame, width=2, text="Settings", command=lambda: self.show_tab("Settings"))
-        self.btn_settings.pack(fill="x", pady=5, padx=5)
+        self.settings_btn = ctk.CTkButton(self.page_frame, text="", width=2, image=get_image("settings", (32,32)), command=lambda: self.show_page("Settings"))
+        self.settings_btn.pack(pady=5, padx=5)
 
-        self.btn_modpack = ctk.CTkButton(self.tab_frame, width=2, text="Modpack", command=lambda: self.show_tab("Modpack"))
-        self.btn_modpack.pack(fill="x", pady=5, padx=5)
+        self.modpack_btn = ctk.CTkButton(self.page_frame, text="", width=2, image=get_image("modpack", (32,32)), command=lambda: self.show_page("Modpack"))
+        self.modpack_btn.pack(pady=5, padx=5)
 
-    def preload_tabs(self):
-        self.loading_window.update_sub_info("Preloading Home")
-        self.show_tab("Home")                                 # load homepage
-        self.loading_window.update_sub_info("Preloading Modpack")
-        self.show_tab("Modpack", False)             # load modpack
-        self.loading_window.update_sub_info("Preloading Settings")
-        self.show_tab("Settings")                             # load settings
-        self.loading_window.update_sub_info("Done Preloading, Thread Dead")
+        self.translation_manager.update_text_likes()
 
-    def show_tab(self, tab_name: Literal["Home", "Settings", "Modpack", "Modpage"], load_mods:bool = True, mod: Mod | None = None) -> None | bool:
-        print("\nTab request for", tab_name)
+    def preload_pages(self):
+        self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_home"))      # Preloading Home
+        self.show_page("Home")                                 # load homepage
+        self.loading_window.add_percentage(8)
+        self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_modpack"))   # Preloading Modpack
+        self.show_page("Modpack", False)             # load modpack
+        self.loading_window.add_percentage(8)
+        self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_settings"))  # Preloading Settings
+        self.show_page("Settings")                             # load settings
+        self.loading_window.add_percentage(8)
+        self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.done_preloading")) # Done Preloading, Thread Dead
 
-        if tab_name == self.current_tab:
-            print("tab already open")
+    def show_page(self, page_name: Literal["Home", "Settings", "Modpack", "Modpage"], load_mods:bool = True, mod: Mod | None = None) -> None | bool:
+        print("\nPage request for", page_name)
+
+        if page_name == self.current_page:
+            print("Page already open")
             return True # thread safety
 
-        # Hide the currently visible tab
-        if self.current_tab in self.tabs:
-            tab = self.tabs[self.current_tab]
-            if tab:
-                print("lowering",self.current_tab)
-                tab.lower()
-        elif self.current_tab == "Modpage":
+        # Hide the currently visible page
+        if self.current_page in self.pages:
+            page = self.pages[self.current_page]
+            if page:
+                print("lowering",self.current_page)
+                page.lower()
+        elif self.current_page == "Modpage":
             # Destroy only the dynamic Modpage
             if hasattr(self, "_current_modpage") and self._current_modpage and self._current_modpage.winfo_exists():
                 self._current_modpage.destroy()
                 self._current_modpage = None
 
         # Handle Modpage (always rebuilt)
-        if tab_name == "Modpage" and mod:
-            frame = PModpage(self.content_frame, mod)
+        if page_name == "Modpage" and mod:
+            frame = PModpage(self.content_frame, self.translation_manager, mod)
             frame.place()
             self._current_modpage: PModpage | None = frame
-            self.current_tab = "Modpage"
+            self.current_page = "Modpage"
             return
 
-        # Handle cached tabs
-        if tab_name not in self.tabs:
-            if tab_name == "Home":
-                self.tabs[tab_name] = PHome(self.content_frame)
-            elif tab_name == "Settings":
-                self.tabs[tab_name] = PSettings(self.content_frame)
-            elif tab_name == "Modpack":
-                self.tabs[tab_name] = PModpack(self.content_frame, load_mods)
+        # Handle cached pages
+        if page_name not in self.pages:
+            if page_name == "Home":
+                self.pages[page_name] = PHome(self.content_frame, self.translation_manager)
+            elif page_name == "Settings":
+                self.pages[page_name] = PSettings(self.content_frame, self.translation_manager)
+            elif page_name == "Modpack":
+                self.pages[page_name] = PModpack(self.content_frame, self.translation_manager, load_mods)
             else:
                 return True # thread safety
 
         # Show cached frame (not destroyed)
-        frame = self.tabs[tab_name]
+        frame = self.pages[page_name]
         if frame:
+            if isinstance(frame, PModpack): frame.reload_mods() # reload mods if is Modpack Page/Tab
             if frame.place_info() == {}: # if not placed yet
-                print("placing",tab_name)
+                print("placing",page_name)
                 frame.place()
             else:
-                print("lifting",tab_name)
+                print("lifting",page_name)
                 frame.lift()
                 
-        self.current_tab = tab_name
+        self.current_page = page_name
         return True
 
     def toggle_fullscreen(self):

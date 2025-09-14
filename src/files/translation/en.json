@@ -1,0 +1,14 @@
+{
+    "loading.initializing": "Initializing",
+    "loading.creating_widgets": "Creating widgets",
+    "loading.waiting_subthread": "Waiting for subthread",
+    "loading.creating_subthread": "Creating subthread",
+    "loading.preloading_home": "Preloading homepage",
+    "loading.preloading_modpack": "Preloading modpack",
+    "loading.preloading_settings": "Preloading settings",
+    "loading.done_preloading": "Done Preloading, Thread Dead",
+
+    "button.home_page": "Home",
+    "button.settings_page": "Settings",
+    "button.modpack_page": "Modpacks"
+}
