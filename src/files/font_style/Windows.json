@@ -1,0 +1,24 @@
+{
+    "header":{
+        "h1":{
+            "family": "Roboto",
+            "size": 32,
+            "weight": "bold"
+        },
+        "h2":{
+            "family": "Roboto",
+            "size": 26,
+            "weight": "bold"
+        },
+        "h3":{
+            "family": "Roboto",
+            "size": 18,
+            "weight": "bold"
+        },
+        "h4":{
+            "family": "Roboto",
+            "size": 10,
+            "weight": "bold"
+        }
+    }
+}

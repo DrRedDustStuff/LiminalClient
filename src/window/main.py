@@ -7,9 +7,10 @@ from time import sleep
 from threading import Thread
 
 from .translation_manager import TranslationManager, TLabel, TButton
+from .font_style_manager import FontStyleManager
 from .container import Settings
 
-def sleepm(ms:int):
+def sleepm(ms:int) -> None:
     if ms > 0:
         sleep(ms / 1000)
     else:
@@ -208,6 +209,7 @@ class Main(ctk.CTk):
 
         self.theme_manager = ctk.ThemeManager()
         self.translation_manager = TranslationManager(self.settings.lang, "files/translation")
+        self.font_style_manager  = FontStyleManager("files/font_style")
 
         self.loading_window = LoadingWindow(self, self._get_appearance_mode())
         self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.initializing")) # Initializing
@@ -252,7 +254,8 @@ class Main(ctk.CTk):
         hiding_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="gray1")
         self.container_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
         hiding_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
-        
+
+        self.translation_manager.update_text_likes()
         self.after(200, hiding_frame.destroy)
 
     def force_taskbar_icon(self):
@@ -319,9 +322,7 @@ class Main(ctk.CTk):
 
         self.modpack_btn = ctk.CTkButton(self.page_frame, text="", width=2, image=get_image("modpack", (32,32)), command=lambda: self.show_page("Modpack"))
         self.modpack_btn.pack(pady=5, padx=5)
-
-        self.translation_manager.update_text_likes()
-
+        
     def preload_pages(self):
         self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_home"))      # Preloading Home
         self.show_page("Home")                                 # load homepage

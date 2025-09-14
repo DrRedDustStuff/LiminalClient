@@ -3,4 +3,3 @@ This library allows for simple access and modification of mods in a specified fo
 """
 from . import ctk
 from . import mod
-from . import nexus_mods

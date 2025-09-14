@@ -68,7 +68,6 @@ class CTkCreator(ctk.CTkScrollableFrame):
 
         # Insert children with inline styling (expects text in node["raw"])
         for child in node.get("children", []):
-            print(child["type"])
             self.insert_inline_text(tw, child, heading=True, font_size=font_size)
 
         # Read-only
@@ -102,7 +101,6 @@ class CTkCreator(ctk.CTkScrollableFrame):
 
         # Insert children with inline styling (expects text in node["raw"])
         for child in node.get("children", []):
-            print(child["type"])
             self.insert_inline_text(tw, child, font_size=font_size)
 
         # Read-only
@@ -118,8 +116,6 @@ class CTkCreator(ctk.CTkScrollableFrame):
             # Fallback if 'displaylines' unsupported
             lines = int(tw.index(END).split(".")[0])
         textbox.configure(height=max(line_h * max(1, lines), line_h))
-        print(max(line_h * max(1, lines), line_h))
-        print(lines)
 
     def insert_inline_text(self, text_widget: Text, node: dict[str, Any], heading: bool = False, font_size: int = 12):
         ntype = node["type"]
@@ -129,45 +125,36 @@ class CTkCreator(ctk.CTkScrollableFrame):
         elif ntype == "strong":
             start = text_widget.index(CPOS)
             for c in node.get("children", []):
-                print(c["type"])
                 self.insert_inline_text(text_widget, c, heading=heading, font_size=font_size)
             end = text_widget.index(CPOS)
             text_widget.tag_add("bold", start, end)
-            print(f"index from {start} to {end}, strong")
         elif ntype == "emphasis":
             start = text_widget.index(CPOS)
             for c in node.get("children", []):
-                print(c["type"])
                 self.insert_inline_text(text_widget, c, heading=heading, font_size=font_size)
             end = text_widget.index(CPOS)
             text_widget.tag_add("italic", start, end)
-            print(f"index from {start} to {end}, emphasis")
         elif ntype == "inline_code":
             start = text_widget.index(CPOS)
             text_widget.insert("end", node.get("raw", ""))
             end = text_widget.index(CPOS)
             text_widget.tag_add("code", start, end)
-            print(f"index from {start} to {end}, inline_code")
         elif ntype == "codespan":
             start = text_widget.index(CPOS)
             text_widget.insert("end", node.get("raw", ""))
             end = text_widget.index(CPOS)
             text_widget.tag_add("code", start, end)
-            print(f"index from {start} to {end}, codespan")
         elif ntype == "link":
             # render link text; you can also add URL afterwards if you want
             start = text_widget.index(CPOS)
             for c in node.get("children", []):
-                print(c["type"])
                 self.insert_inline_text(text_widget, c, heading=heading, font_size=font_size)
             end = text_widget.index(CPOS)
             # example styling for links (inherits base size)
             
             text_widget.tag_add("link", start, end)
-            print(f"index from {start} to {end}, link")
         elif ntype == "softbreak":
             text_widget.insert("end", "\n")
-        print()
 
     def widget_list(self, parent: Any, node: dict[str, Any], level: int = 0):
         bullet = "• "

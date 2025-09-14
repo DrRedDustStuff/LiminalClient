@@ -10,8 +10,11 @@ from .page import Page
 from os import getcwd
 from os.path import join, dirname
 
+from window.translation_manager.label import TLabel
+from window.translation_manager.translation_manager import TranslationManager
+
 class PModpage(Page):
-    def __init__(self, master: Any, translation_manager, mod:Mod):
+    def __init__(self, master: Any, translation_manager:TranslationManager, mod:Mod):
         super().__init__(master, translation_manager)
         self.create_widgets(mod)
     

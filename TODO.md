@@ -52,4 +52,5 @@
     - Localization/multi-language support -optional #system rewrite
 
 - Redo translation manager and translatables -done
-- Rename variables to make sense with the api they use -in progress
+- Rename variables to make sense with the api they use -done
+- make the GUI and backend separate threads -idk if ill do it

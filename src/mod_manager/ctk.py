@@ -23,6 +23,7 @@ class ModDisplay(ctk.CTkFrame):
         # - widget
         # - sub-master
         # -- widget
+        # *(nested widgets follow these rules as well)
 
         # mod select checkbox
         self.cb_select = ctk.CTkCheckBox(self, width=16,height=16, text="")
@@ -63,6 +64,7 @@ class ModDisplay(ctk.CTkFrame):
         self.set_values(mod_author=self.mod.author)
     
     def set_values(self, **kwargs):
+        # could use translation manager (would not recommend)
         """Valid -> mod_icon, mod_name, mod_author, version, filename"""
         self.l_mod_name    .configure(False, text=kwargs["mod_name"  ]) if kwargs["mod_name"  ] else None
         self.l_mod_author  .configure(False, text=kwargs["mod_author"]) if kwargs["mod_author"] else None
