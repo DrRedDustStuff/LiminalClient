@@ -23,7 +23,7 @@ class PModpack(Page):
         if load_mods: self.load_mods
     
     def load_mods(self):
-        MCTk.ModDisplay(self, self.m_master.master.master.show_page, Mod("MODNAME", "MODAUTHOR")).place(x=0,rely=0.25,relwidth=1) # type: ignore
+        MCTk.ModDisplay(self, self.m_master.master.master.show_page, Mod("AUTHOR", "MODID", "MODNAME", "YOYOYOYO", b"ada", ["sosossoososos"])).place(x=0,rely=0.25,relwidth=1) # type: ignore
 
     def reload_mods(self):
         print("Reloading Mods")

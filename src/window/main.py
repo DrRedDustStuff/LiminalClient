@@ -9,6 +9,7 @@ from threading import Thread
 from .translation_manager import TranslationManager, TLabel, TButton
 from .font_style_manager import FontStyleManager
 from .container import Settings
+from mod_manager.mod import ModManager
 
 def sleepm(ms:int) -> None:
     if ms > 0:
@@ -139,7 +140,7 @@ class LoadingWindow(ctk.CTkToplevel):
         # padding should be floated first (e.g.: 45% -> 0.45) or (percent / 100 = floated_percent)
 
         # top 25% height 12.5% padding (h/w) Label: Loading
-        self.title_label = ctk.CTkLabel(master, text="Loading", 
+        self.title_label = ctk.CTkLabel(master, text="<Unset>", 
                                         font=CTkFont("Arial", 21, "bold")
                                         )
         self.title_label.place(anchor=Anchor.North, relx=0.5,rely=0.125, relwidth=0.75, relheight=0.25)
@@ -210,8 +211,10 @@ class Main(ctk.CTk):
         self.theme_manager = ctk.ThemeManager()
         self.translation_manager = TranslationManager(self.settings.lang, "files/translation")
         self.font_style_manager  = FontStyleManager("files/font_style")
+        self.mod_manager = ModManager("./files/modpacks/mods/")
 
         self.loading_window = LoadingWindow(self, self._get_appearance_mode())
+        self.loading_window.title_label.configure(text=self.translation_manager.get_raw("loading.header"))
         self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.initializing")) # Initializing
 
         self.iconbitmap("./files/icon.ico")

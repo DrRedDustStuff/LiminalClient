@@ -1,6 +1,7 @@
 {
     "icon-file":"./src/files/icon.ico",
-    "script":"./src/main.py",
+    "script":"./src/terminal-eml/main.py",
     "save-as":"NEO EML",
-    "gui":"True"
+    "gui":"True",
+    "files":"src/terminal-eml/files"
 }

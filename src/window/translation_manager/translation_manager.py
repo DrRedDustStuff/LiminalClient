@@ -42,7 +42,7 @@ class TranslationManager:
         """**switches the language to `new_lang`**
         <br>`new_lang` *lang*: new language to be used
         <br> make sure to update text likes for changes to take effect"""
-        with open(f"{self._translation_folder}/{new_lang}.json") as f:
+        with open(f"{self._translation_folder}/{new_lang}.json", "r", encoding="ascii") as f:
             self._lang = new_lang
             self._lang_data = json.load(f)
     
@@ -50,6 +50,21 @@ class TranslationManager:
         """gets raw string translation data"""
         return self._lang_data.get(key, f"<No-{key}-Key>")
     
+    def decode(self, text:str):
+        result = ""
+        i = 0
+        while i < len(text):
+            char = text[i]
+            if char == "/":
+                result += (rb"\x" + bytes(text[i+1:i+3])).decode() # type: ignore
+                i += 2
+            else:
+                result += char
+            i += 1
+
+        print(result)
+        return result
+
     def update_text_likes(self):
         """Updates all stored `TextLike` widgets to the lang data"""
         for k, w in self._text_likes.items():
@@ -64,5 +79,6 @@ class TranslationManager:
                 print(f"key not found:{key}, defaulting to <Default>.")
                 w._translate("<Default>")
                 continue
-            w._translate(text)
+            w._translate(text.encode("utf-8"))
+            print(text.encode("utf-8"))
             print(f"TextLike:{k} updated to lang: {self._lang}")

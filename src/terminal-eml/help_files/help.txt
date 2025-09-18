@@ -1,0 +1,3 @@
+This command gives you help with using commands.
+It takes one argument: <Command>.
+It currently does not take flags.

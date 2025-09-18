@@ -5,9 +5,10 @@ import time
 start_time: float = time.time()
 jsn: dict = json.loads(open("./PYBuilder/build.json").read())
 save_as: str = jsn.get("save-as", "")
+files: str = jsn.get("files", "files")
 try:
     os.mkdir(f"./{save_as}/")
-    shutil.copytree("./src/files/",f"./{save_as}/files/")
+    shutil.copytree(f"./{files}/",f"./{save_as}/files/")
 except Exception as exception:print(f"[Sub] [Zipper] {exception}")
 with open(f"./{save_as}/{save_as}.exe", 'w') as file:
     file.close()

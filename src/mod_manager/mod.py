@@ -1,31 +1,22 @@
 from typing import Literal
+from mdpackhandler import MDPackHandler
 
+# pure container class
 class Mod:
-    def __init__(self, name: str = "", author: str = "", dependencies: list[str] | None = None) -> None:
-        # mod name
-        self.name = name
-        # mod author
+    def __init__(self, author:str, mod_id:str, mod_name:str, description:str, mod_binary:bytes, dependencies:list[str]) -> None:
         self.author = author
-        
-        self.has_dependencies = dependencies != None
-        # list of mod names
-        self.dependencies: list[str] | Literal["No Dependencies"] = dependencies if (self.has_dependencies and dependencies) else "No Dependencies"
-    
-    def _add_dependency(self, dependency:str):
-        if not self.has_dependencies:
-            self.has_dependencies = True
-            self.dependencies = []
-        self.dependencies.append(dependency) # type: ignore #, ignore the warning.
-
-def mod_from_json(jsn:dict[str, str | list[str]]) -> Mod:
-    """creates a Mod class from json data"""
-    return Mod(jsn["name"],jsn["author"],jsn.get("dependencies")) # type: ignore ## str | list[str] error ##
+        self.mod_id = mod_id
+        self.mod_name = mod_name
+        self.description = description
+        self.mod = mod_binary
+        self.dependencies = dependencies
 
 class ModManager:
-    def __init__(self, path:str|None = None) -> None:
+    def __init__(self, mod_data_directory:str|None = None, path:str|None = None) -> None:
         self.path: str
-        if path: self.path = path
-        else:    self.path = ""
+        self.md_directory: str
+        if not path: self.path = ""
+        if not mod_data_directory: self.md_directory = ""
         self.modpack:list[Mod] = [] # list of all mods.
     
     def _add_mod(self, mod:Mod):

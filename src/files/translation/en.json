@@ -1,4 +1,5 @@
 {
+    "loading.header": "Loading",
     "loading.initializing": "Initializing",
     "loading.creating_widgets": "Creating widgets",
     "loading.waiting_subthread": "Waiting for subthread",
@@ -10,5 +11,7 @@
 
     "label.home_page": "Home",
     "label.settings_page": "Settings",
-    "label.modpack_page": "Modpacks"
+    "label.modpack_page": "Modpacks",
+
+    "button.apply_settings": "Apply"
 }
