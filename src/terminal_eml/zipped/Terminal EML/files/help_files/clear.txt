@@ -1,0 +1,3 @@
+This command clears a specified cache
+Here is a list of all currently used caches that can be cleared:
+game_folder - The cache containing all game folders that have ever been found on your device (you can also use clean to clean this cache).

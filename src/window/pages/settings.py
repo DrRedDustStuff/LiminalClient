@@ -16,9 +16,13 @@ class PSettings(Page):
     def __init__(self, master: Any, translation_manager:TranslationManager):
         super().__init__(master, translation_manager)
         self.create_widgets()
+        self.load_settings()
     
+    def load_settings(self):
+        self.language.set(self.translation_manager.get_language_name())
+
     def create_widgets(self):
-        self.l_window_label = TLabel(self, self.translation_manager, "settings_page", font=self.font_style_manager("header.h2"))
+        self.l_window_label = TLabel(self, self.translation_manager, "settings.header", font=self.style.font("header.h2"))
         self.l_window_label.pack(side="top", padx=10,pady=10, fill="x")
 
         self.language = ctk.StringVar(self, "English", "language")
@@ -35,5 +39,5 @@ class PSettings(Page):
         self.translation_manager.switch_lang(LANGMAP.get(lang, "en"))
 
     def apply_settings(self):
-        self.translation_manager.update_text_likes()
         self.main.settings.lang = self.translation_manager._lang
+        self.translation_manager.update_text_likes()

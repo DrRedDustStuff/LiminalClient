@@ -1,0 +1,14 @@
+
+Heres a list of all Commands available:
+
+help None|[Command] - helps with a specified command or shows an overview of all commands with a short descriptions
+exit None - Exits the program, you could also use the x, but this command ensures all data is saved
+
+clear [CacheName] - Clears the specified cache, you can find all cache names with 'help cache'
+clean None - cleans the game folder of any non existing folders
+
+fgame None - finds the Escape the Backrooms game folder, depending on driver size and if it was already found this can take a lot of time
+start None - starts the Escape the Backrooms
+
+menable [ModName] [State:{Enabled,Disabled}] - sets the specified mod to the specified State
+lsmods None - lists all mods

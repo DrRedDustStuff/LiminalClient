@@ -56,8 +56,6 @@ class TLabel(CTkLabel, Translatable):
                          wraplength, 
                          **kwargs
                          )
-        if "." in key:
-            raise ValueError(f"Argument key does not allow periods, key:{key} is not allowed")
         self._translation_key = key
         self.translation_manager = translation_manager
         self.translation_manager._text_likes.update({self._get_translation_key(): self}) # good

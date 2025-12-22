@@ -7,7 +7,8 @@ from time import sleep
 from threading import Thread
 
 from .translation_manager import TranslationManager, TLabel, TButton
-from .font_style_manager import FontStyleManager
+from .style_manager import StyleManager
+from .style_manager.tkstyle_reader import TKStyle, os_name
 from .container import Settings
 from mod_manager.mod import ModManager
 
@@ -33,6 +34,7 @@ class Anchor:
     Center:Literal["center"]="center"
 
 import ctypes
+from ctypes import wintypes
 
 # ------------- #
 # Helper        #
@@ -50,10 +52,18 @@ def color_by_mode(color:list[str] | tuple[str, str], mode:Literal["light", "dark
 def percentage_lose_precision(value:float) -> float:
     return round(value * 1_000) / 1_000
 
-# Constants from Win32 API
+def set_app_id(app_id: str):
+    """Sets a Windows AppUserModelID for taskbar grouping and notifications."""
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(wintypes.LPCWSTR(app_id))
+
+# Constants
 GWL_EXSTYLE = -20
 WS_EX_APPWINDOW = 0x00040000
 WS_EX_TOOLWINDOW = 0x00000080
+SWP_NOSIZE = 0x0001
+SWP_NOMOVE = 0x0002
+SWP_NOZORDER = 0x0004
+SWP_FRAMECHANGED = 0x0020
 
 class FTFrame(ctk.CTkFrame):
     def __init__(self, master: Any, 
@@ -115,14 +125,9 @@ class FTFrame(ctk.CTkFrame):
         self.place(x=self.sx, y=self.sy, relwidth=rwidth, relheight=rheight)
 
 # Loading window should be implemented
-class LoadingWindow(ctk.CTkToplevel):
+class LoadingWindow(ctk.CTkFrame):
     def __init__(self, master, color_mode:Literal["light", "dark"] | str, **kwargs):
         super().__init__(master, fg_color="gray1", **kwargs)
-        self.title("Loading")
-        self.geometry(f"300x300+{int(self.winfo_screenwidth() / 2) - 150}+{int(self.winfo_screenheight() / 2) - 150}")
-
-        self.overrideredirect(True)
-        self.wm_attributes("-transparentcolor", "gray1")
 
         self.f_main = ctk.CTkFrame(self, corner_radius=20, border_color=color_by_mode(["#e0e0e0", "#202020"], color_mode), border_width=5, bg_color="gray1", fg_color=color_by_mode(["#c0c0c0", "#303030"], color_mode))
         self.f_main.place(relx=0.5,rely=0.5, relwidth=0.9,relheight=0.9, anchor=Anchor.Center)
@@ -141,7 +146,7 @@ class LoadingWindow(ctk.CTkToplevel):
 
         # top 25% height 12.5% padding (h/w) Label: Loading
         self.title_label = ctk.CTkLabel(master, text="<Unset>", 
-                                        font=CTkFont("Arial", 21, "bold")
+                                        font=CTkFont("Arial", 42, "bold")
                                         )
         self.title_label.place(anchor=Anchor.North, relx=0.5,rely=0.125, relwidth=0.75, relheight=0.25)
 
@@ -151,10 +156,10 @@ class LoadingWindow(ctk.CTkToplevel):
 
         # in Frame: info top 50% height 100% width Label: loading info
         self.ic_l_loading_info = ctk.CTkLabel(self.info_container, text="",
-                                              font=CTkFont("Roboto", 14, "bold"))
+                                              font=CTkFont("Roboto", 28, "bold"))
         self.ic_l_loading_info.place(anchor=Anchor.North, relx=0.5,rely=0, relwidth=1,relheight=0.375)
         self.ic_l_sub_info = ctk.CTkLabel(self.info_container, text="",
-                                          font=CTkFont("Roboto", 10, "normal", "italic"))
+                                          font=CTkFont("Roboto", 20, "normal", "italic"))
         self.ic_l_sub_info.place(anchor=Anchor.North, relx=0.5,rely=0.375, relwidth=1, relheight=0.125)
 
         # in Frame: info bottom 12.5% height 0.75 ypos 100% width center anchor LoadingBar: loading percentage
@@ -206,20 +211,24 @@ class Main(ctk.CTk):
 
     def __init__(self, **kwargs):
         super().__init__(fg_color="gray1", **kwargs)
+
+        set_app_id("LiminalClient.Main")
+
         self.settings = Settings("s.inf")
 
         self.theme_manager = ctk.ThemeManager()
         self.translation_manager = TranslationManager(self.settings.lang, "files/translation")
-        self.font_style_manager  = FontStyleManager("files/font_style")
+        self.style: TKStyle = TKStyle(f"./files/style/{os_name()}.tks").load()
         self.mod_manager = ModManager("./files/modpacks/mods/")
 
         self.loading_window = LoadingWindow(self, self._get_appearance_mode())
         self.loading_window.title_label.configure(text=self.translation_manager.get_raw("loading.header"))
         self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.initializing")) # Initializing
+        self.loading_window.place(relx=0,rely=0,relheight=1,relwidth=1)
 
         self.iconbitmap("./files/icon.ico")
-        self.title("Neo EML")
-        self.geometry("1200x800")
+        self.title("Liminal Client")
+        self.geometry("1200x850+20+20")
         self.resizable(True, True)
         self.minsize(800, 500)
 
@@ -227,7 +236,7 @@ class Main(ctk.CTk):
 
         # Custom title-bar
         self.overrideredirect(True)
-        self.force_taskbar_icon()
+        self.after(20, self.force_taskbar_icon)
         self.attributes("-topmost", True)
         self.after(10, lambda: self.attributes("-topmost", False))
         self.configure(bg="gray1")
@@ -242,7 +251,7 @@ class Main(ctk.CTk):
         self.grid_propagate(False)
         self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.creating_widgets")) # Creating Widgets
         self.loading_window.add_percentage(25)
-        self.pages: dict[Any, PHome | PModpack | PModpage | PSettings | None] = {}
+        self.pages: dict[Any, PHome | PModpack | PModpage | PSettings | PModDiscovery | None] = {}
         self.current_page = None
         self.create_widgets(self.container_frame)
         self.loading_window.update_loading_info(self.translation_manager.get_raw("loading.waiting_subthread")) # Waiting on Subthread
@@ -251,33 +260,35 @@ class Main(ctk.CTk):
         self.on_thread_dead(self.t_preload_pages, self.thread_preload_pages_done)
     
     def thread_preload_pages_done(self):
-        self.show_page("Modpack")
-        self.loading_window.done()
-
-        hiding_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="gray1")
+        self.show_page("Home")
         self.container_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
-        hiding_frame.place(relx=0,rely=0, relwidth=1,relheight=1)
-
+        self.loading_window.update_loading_info("Waiting for container frame")
+        self.loading_window.update_sub_info("")
+        self.loading_window.lift(self.container_frame)
         self.translation_manager.update_text_likes()
-        self.after(200, hiding_frame.destroy)
+        self.after(ms=220, func=self.container_frame.lift)
+        # self.loading_window.done()
 
     def force_taskbar_icon(self):
         hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
         style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
 
-        # Remove TOOLWINDOW style (hides from taskbar)
+        # Remove TOOLWINDOW (hidden from taskbar)
         style &= ~WS_EX_TOOLWINDOW
-        # Add APPWINDOW style (shows in taskbar)
+        # Add APPWINDOW (visible in taskbar)
         style |= WS_EX_APPWINDOW
 
         ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
-        # Refresh window style
-        ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0,
-                                        0x0027)  # SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_FRAMECHANGED
+
+        # Refresh the window style
+        ctypes.windll.user32.SetWindowPos(
+            hwnd, 0, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
+        )
 
     def create_widgets(self, master:Any):
         # to increase loading times the content frame is placed before the top bar
-        self.content_frame = FTFrame(master, sx=64, sy=40, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
+        self.content_frame = FTFrame(master, sx=64, sy=48, ex_offset=4, ey_offset=4, corner_radius=20)#, bg_color="gray25")
         self.content_frame.place(rely=0, relwidth=1)
 
         self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.creating_subthread")) # Creating Subthread
@@ -286,7 +297,7 @@ class Main(ctk.CTk):
 
         # Custom top bar
         self.top_bar = ctk.CTkFrame(master, height=40, corner_radius=0, fg_color="transparent")
-        self.top_bar.place(relx=0.5, y=0, relwidth=0.989, anchor=Anchor.North)
+        self.top_bar.place(relx=0.5, y=4, relwidth=0.989, anchor=Anchor.North)
         self.top_bar.pack_propagate(False)
 
         # Icon
@@ -295,7 +306,7 @@ class Main(ctk.CTk):
         self.il_topbar_icon.pack(side="left", padx=5, pady=2)
 
         # Title
-        self.title_label = ctk.CTkLabel(self.top_bar, text="Neo EML", font=("Arial", 16), fg_color="transparent")
+        self.title_label = ctk.CTkLabel(self.top_bar, text="Liminal Client", font=self.style.font("font"), fg_color="transparent")
         self.title_label.pack(side="left", padx=10)
 
         # Exit button
@@ -313,7 +324,7 @@ class Main(ctk.CTk):
         self.title_label.bind("<B1-Motion>", self._do_move)
 
         # Vertical page buttons
-        self.page_frame = FTFrame(master, sx=0,sy=40,ex=64,ey_offset=10, fg_color="transparent")
+        self.page_frame = FTFrame(master, sx=0,sy=48,ex=64,ey_offset=10, fg_color="transparent")
         self.page_frame.place(rely=0, relwidth=1)
         self.page_frame.pack_propagate(False)
 
@@ -325,6 +336,9 @@ class Main(ctk.CTk):
 
         self.modpack_btn = ctk.CTkButton(self.page_frame, text="", width=2, image=get_image("modpack", (32,32)), command=lambda: self.show_page("Modpack"))
         self.modpack_btn.pack(pady=5, padx=5)
+
+        self.mod_discovery_btn = ctk.CTkButton(self.page_frame, text="", width=2, image=get_image("mod-discovery", (32,32)), command=lambda: self.show_page("ModDiscovery"))
+        self.mod_discovery_btn.pack(pady=5, padx=5)
         
     def preload_pages(self):
         self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_home"))      # Preloading Home
@@ -336,9 +350,12 @@ class Main(ctk.CTk):
         self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_settings"))  # Preloading Settings
         self.show_page("Settings")                             # load settings
         self.loading_window.add_percentage(8)
+        self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.preloading_settings"))  # Preloading Settings
+        self.show_page("ModDiscovery")                             # load settings
+        self.loading_window.add_percentage(8)
         self.loading_window.update_sub_info(self.translation_manager.get_raw("loading.done_preloading")) # Done Preloading, Thread Dead
 
-    def show_page(self, page_name: Literal["Home", "Settings", "Modpack", "Modpage"], load_mods:bool = True, mod: Mod | None = None) -> None | bool:
+    def show_page(self, page_name: Literal["Home", "Settings", "Modpack", "Modpage", "ModDiscovery"], load_mods:bool = True, mod: Mod | None = None) -> None | bool:
         print("\nPage request for", page_name)
 
         if page_name == self.current_page:
@@ -373,6 +390,8 @@ class Main(ctk.CTk):
                 self.pages[page_name] = PSettings(self.content_frame, self.translation_manager)
             elif page_name == "Modpack":
                 self.pages[page_name] = PModpack(self.content_frame, self.translation_manager, load_mods)
+            elif page_name == "ModDiscovery":
+                self.pages[page_name] = PModDiscovery(self.content_frame, self.translation_manager)
             else:
                 return True # thread safety
 

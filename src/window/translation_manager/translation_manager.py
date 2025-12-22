@@ -15,7 +15,7 @@ class TranslationManager:
     """
     def __init__(self, lang:str="en", translation_folder:str="") -> None:
         """
-        ### Create a TranslationManager class to auto update you widgets with the correct language
+        ### Create a TranslationManager class to auto update your widgets with the correct language
 
         :param lang: the starting language, defaults to '`en`'.
         :param translation_folder: the folder with all translation files. *(translation files are json.str_str pairs)
@@ -26,7 +26,7 @@ class TranslationManager:
         self._translation_folder: str = translation_folder
         "used internally"
         self._text_likes:dict[str, Any] = {}
-        with open(f"{self._translation_folder}/{lang}.json") as f:
+        with open(f"{self._translation_folder}/{lang}.json", "r", encoding="utf-8") as f:
             self._lang = lang
             self._lang_data = json.load(f)
     
@@ -42,7 +42,7 @@ class TranslationManager:
         """**switches the language to `new_lang`**
         <br>`new_lang` *lang*: new language to be used
         <br> make sure to update text likes for changes to take effect"""
-        with open(f"{self._translation_folder}/{new_lang}.json", "r", encoding="ascii") as f:
+        with open(f"{self._translation_folder}/{new_lang}.json", "r", encoding="utf-8") as f:
             self._lang = new_lang
             self._lang_data = json.load(f)
     
@@ -74,11 +74,15 @@ class TranslationManager:
             if not hasattr(w, "_get_translation_key"):
                 raise ValueError(f"object {k} is not a TextLike &| Translatable")
             key = w._get_translation_key()
-            text = self._lang_data.get(key)
+            text:str|None = self._lang_data.get(key)
             if text is None:
                 print(f"key not found:{key}, defaulting to <Default>.")
                 w._translate("<Default>")
                 continue
-            w._translate(text.encode("utf-8"))
-            print(text.encode("utf-8"))
+            w._translate(text)
+            print(text)
             print(f"TextLike:{k} updated to lang: {self._lang}")
+
+    def get_language_name(self):
+        Association = {"de":"Deutsch","en":"English"}
+        return Association[self._lang]

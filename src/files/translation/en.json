@@ -9,9 +9,10 @@
     "loading.preloading_settings": "Preloading settings",
     "loading.done_preloading": "Done Preloading, Thread Dead",
 
-    "label.home_page": "Home",
-    "label.settings_page": "Settings",
-    "label.modpack_page": "Modpacks",
+    "label.home.header": "Home",
+    "label.settings.header": "Settings",
+    "label.modpack.header": "Modpacks",
+    "label.moddiscovery.header":"ModDiscovery",
 
     "button.apply_settings": "Apply"
 }

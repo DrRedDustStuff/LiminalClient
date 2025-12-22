@@ -17,13 +17,23 @@ class PModpack(Page):
         self.create_widgets(master, load_mods)
     
     def create_widgets(self, master, load_mods):
-        self.l_window_label = TLabel(self, self.translation_manager, "modpack_page", font=self.font_style_manager("header.h2"))
+        self.l_window_label = TLabel(self, self.translation_manager, "modpack.header", font=self.style.font("header.h2"))
         self.l_window_label.place(relx=0.5,y=10, relwidth=1,relheight=0.2,anchor="n")
+
+        self.f_mod_hider = ctk.CTkFrame(self, 0,0, 0, bg_color="transparent", fg_color="transparent")
+        self.f_mod_hider.place(x=0,rely=0.25, relwidth=1,relheight=0.75)
 
         if load_mods: self.load_mods
     
     def load_mods(self):
-        MCTk.ModDisplay(self, self.m_master.master.master.show_page, Mod("AUTHOR", "MODID", "MODNAME", "YOYOYOYO", b"ada", ["sosossoososos"])).place(x=0,rely=0.25,relwidth=1) # type: ignore
+        self.f_mod_hider.lift()
+        # start
+
+        MCTk.ModDisplay(self, self.main.show_page, Mod(author="AUTHOR", mod_id="MODID", mod_name="MODNAME", description="YOYOYOYO", mod_binary=b"ada", dependencies=["sosossoososos"])).place(x=0,rely=0.25,relwidth=1) # type: ignore
+        self.f_mod_hider.lift()
+
+        # end
+        self.after(100,self.f_mod_hider.lower)
 
     def reload_mods(self):
         print("Reloading Mods")

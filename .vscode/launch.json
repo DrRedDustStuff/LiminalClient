@@ -16,9 +16,9 @@
             "name": "Run Main",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/terminal-eml/main.py",
-            "console": "externalTerminal",
-            "cwd": "${workspaceFolder}/src/terminal-eml/"
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src"
         }
     ]
 }

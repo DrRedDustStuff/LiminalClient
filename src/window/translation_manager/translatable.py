@@ -5,9 +5,9 @@ class Translatable:
         if "." in key:
             raise ValueError(f"Argument key does not allow periods, key:{key} is not allowed")
         self._translation_key = key
+        "used internally"
         self.translation_manager = translation_manager
         self.translation_manager._text_likes.update({self._get_translation_key(): self}) # good
-        "used internally"
 
     def _get_translation_key(self) -> str:
         """helps the TranslationManager find the key more easily"""

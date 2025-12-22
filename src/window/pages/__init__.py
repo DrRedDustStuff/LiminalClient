@@ -6,3 +6,4 @@ from .home import PHome
 from .settings import PSettings
 from .modpage import PModpage
 from .modpack import PModpack
+from .moddiscovery import PModDiscovery

@@ -1,0 +1,1 @@
+from .main import TestPlugin as Plugin

@@ -1,0 +1,1 @@
+print("elem wawa:"[5:-1])
