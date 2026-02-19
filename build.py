@@ -48,3 +48,5 @@ shutil.copytree(RESOURCES_PATH, f"build/{APPNAME}/{RESOURCES_PATH}")
 
 shutil.make_archive(APPNAME, "zip", f"build/{APPNAME}/")
 shutil.move(f"{APPNAME}.zip", f"build/{APPNAME}.zip")
+
+shutil.rmtree(f"build/{APPNAME}/")
