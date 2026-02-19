@@ -1,1 +1,0 @@
-from .main import PluginManagerPlugin as Plugin

@@ -1,0 +1,31 @@
+{
+    "root": {
+        
+    },
+
+    "header": {
+        "parent":"root",
+        "font": ["Arial", 24, "bold"]
+    },
+    "title": {
+        "parent":"header",
+        "text": "Liminal Client"
+    },
+
+    "button": {
+        "parent":"root",
+        "font": ["Arial", 14, "bold"]
+    },
+    "rg_button": {
+        "parent":"button",
+        "text":"Start Game"
+    },
+    "fm_button": {
+        "parent":"button",
+        "text":"Find mods"
+    },
+    "im_button": {
+        "parent":"button",
+        "text":"Import mod"
+    }
+}
