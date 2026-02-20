@@ -13,6 +13,7 @@ APPNAME = "Liminal Client"
 APPICON = "NONE"
 
 RESOURCES_PATH = "resources"
+REMOVE_FROM_RESOURCES = ["data"]
 
 EXCLUDE_IMPORTS = ["pygame-ce"]
 
@@ -45,6 +46,10 @@ if not os.path.exists(f"build/{APPNAME}"):
 
 shutil.move(f"build/{APPNAME+" "+data.version}.exe", f"build/{APPNAME}/{APPNAME}.exe")
 shutil.copytree(RESOURCES_PATH, f"build/{APPNAME}/{RESOURCES_PATH}")
+
+for dir in REMOVE_FROM_RESOURCES:
+    if os.path.exists(f"build/{APPNAME}/{RESOURCES_PATH}/{dir}"):
+        os.remove(f"build/{APPNAME}/{RESOURCES_PATH}/{dir}")
 
 shutil.make_archive(APPNAME, "zip", f"build/{APPNAME}/")
 shutil.move(f"{APPNAME}.zip", f"build/{APPNAME}.zip")
