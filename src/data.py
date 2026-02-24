@@ -3,7 +3,7 @@ from . import logger
 
 major = 0
 minor = 2
-small = 0
+small = 2
 type = "beta"
 
 version = f"{major}.{minor}.{small}{"-"+type if type != "" else ""}"

@@ -14,13 +14,16 @@ from .core.mod import Mod
 from .keybinds import KeybindsManager
 from .settings import SettingsManager
 
-class LiminalClient(CTk):
+from .typing import LC
+
+class LiminalClient(CTk, LC):
     def __init__(self):
         super().__init__()
         logger.info("Starting Liminal Client")
         self.game_manager = GameManager()
 
         ctk.set_default_color_theme("resources/themes/blue.json")
+        ctk.set_appearance_mode("dark")
 
         self.widget_manager: dict[str,CTkBaseClass] = {}
         self.mod_widget_manager: dict[str, CTkFrame] = {}
@@ -66,7 +69,8 @@ class LiminalClient(CTk):
 
     def on_found(self):
         if data.found:
-            self.find_mods()
+            self.after(500, self.find_mods)
+            self.set_statuses("Found All", data.game_folder != "", data.steam_folder != "")
             return
         self.after(50, self.on_found)
 
@@ -103,7 +107,7 @@ class LiminalClient(CTk):
             ).pack(anchor="n", padx=8, pady=8, side="left")
         
         self.add("tab_view", CTkTabview(master)
-            ).pack(anchor="n", fill="both", padx=32, pady=8, side="top", expand=True)
+            ).pack(anchor="n", fill="both", padx=32, pady=(8,4), side="top", expand=True)
 
         tab_view = self.get("tab_view")
         if not isinstance(tab_view, CTkTabview): raise Exception("Well this is awkward")
@@ -116,11 +120,31 @@ class LiminalClient(CTk):
         
         self.add("keybinds_frame", tab_view.add("keybinds"))
 
+        self.add("steam_found_status", CTkLabel(master)
+            ).pack(anchor="n", fill="x", padx=2, pady=2, side="bottom")
+        self.add("etb_found_status", CTkLabel(master)
+            ).pack(anchor="n", fill="x", padx=2, pady=2, side="bottom")
+        self.add("finding_progress", CTkLabel(master)
+            ).pack(anchor="n", fill="x", padx=2, pady=2, side="bottom")
+
     def start_game(self):
+        if data.steam_folder == "":
+            messagebox.showwarning("Wait for the Game to be found", "Cannot start the game if Steam has not been found")
+            return
+
         self.keybinds_manager.write()
         self.game_manager.start_game()
 
+    def set_statuses(self, progress:str, etb_found:bool=False, steam_found:bool=False):
+        self.get("finding_progress").configure(text=progress)
+        self.get("etb_found_status").configure(text=("Escape the Backrooms: "+("Found" if steam_found else "Still looking")))
+        self.get("steam_found_status").configure(text=("Steam: "+("Found" if steam_found else "Still looking")))
+
     def find_mods(self):
+        if data.game_folder == "":
+            messagebox.showwarning("Wait for the Game to be found", "Cannot find mods if Escape the Backrooms has not been found")
+            return
+
         for n,w in self.mod_widget_manager.items(): w.destroy()
         self.mod_widget_manager.clear()
 
@@ -147,6 +171,10 @@ class LiminalClient(CTk):
         self.find_mods()
 
     def import_mod(self):
+        if data.game_folder == "":
+            messagebox.showwarning("Wait for the Game to be found", "Cannot import a mod if Escape the Backrooms has not been found")
+            return
+
         path = filedialog.askopenfilename(title="Import mod", filetypes=[("UE Mod file","*.pak")])
         if path == "": return
         self.game_manager.import_mod(path)
@@ -179,7 +207,8 @@ class LiminalClient(CTk):
         data.load()
         self.keybinds_manager.read()
         self.keybinds_manager.widgets()
-        self.game_manager.find_game()
+        self.set_statuses("Found" if data.found else "Looking", data.game_folder != "", data.steam_folder != "")
+        self.game_manager.find_game(self)
         self.on_found()
 
     def mainloop(self, *args, **kwargs):

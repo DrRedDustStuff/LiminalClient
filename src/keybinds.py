@@ -70,8 +70,9 @@ class KeybindSelectWindow(CTkToplevel):
         self.wm_withdraw()
 
 class Keybind:
-    def __init__(self, frame, name:str, action_mappings:dict[str,list[dict[str,str]]], ksw:KeybindSelectWindow) -> None:
+    def __init__(self, frame, name:str, id:str, action_mappings:dict[str,list[dict[str,str]]], ksw:KeybindSelectWindow) -> None:
         self.frame = frame
+        self.id = id
         self.name = name
         self.variants: dict[str,int] = {}
         self.am = action_mappings
@@ -91,7 +92,7 @@ class Keybind:
         self.l.pack(padx=12,pady=4, side="left")
 
         for n,i in self.variants.items():
-            b = CTkButton(f,0, text=n+f" ({self.ksw._names[self.am[self.name][i]["Key"]]})", font=("Arial", 14, "bold"))
+            b = CTkButton(f,0, text=n+f" ({self.ksw._names[self.am[self.id][i]["Key"]]})", font=("Arial", 14, "bold"))
             b.configure(command=lambda: self.change_keybind(n,i, b))
             b.pack(padx=6,pady=4, side="right")
             
@@ -112,7 +113,9 @@ class KeybindsManager:
         self.action_mappings: dict[str, list[dict[str,str]]] = {}
 
         self.ksw = KeybindSelectWindow(self.frame)
-        for n,i in keys: self.ksw.add(n,i)
+        for n,i in keys:
+            print(f"Name:{n} Key:{i}")
+            self.ksw.add(n,i)
         self.ksw.widgets(self.ksw.frame)
 
         self.keybinds: dict[str,Keybind] = {}
@@ -152,52 +155,67 @@ class KeybindsManager:
             w.write(text)
     
     def widgets(self):
-        self.category("DISCLAIMER:\nCurrently in the works")
-
         self.category("Menu")
-        (self.keybind("Back")
+        (self.keybind("Back","Back")
          .add("Keyboard", 0)
          .build()
         )
 
         self.category("Movement")
-        (self.keybind("Crouch")
+        (self.keybind("Move forward", "DPadUp")
+         .add("Keyboard", 0)
+         .build()
+        )
+        (self.keybind("Move backward", "DpadDown")
+         .add("Keyboard", 0)
+         .build()
+        )
+        (self.keybind("Move left", "DPadLeft")
+         .add("Keyboard", 0)
+         .build()
+        )
+        (self.keybind("Move right", "DPadRight")
+         .add("Keyboard", 0)
+         .build()
+        )
+
+        (self.keybind("Crouch / Sneak","Crouch")
          .add("Keyboard", 1)
          .build()
         )
-        (self.keybind("Jump")
+        (self.keybind("Jump","Jump")
          .add("Keyboard", 1)
          .build()
         )
-        (self.keybind("Sprint")
+        (self.keybind("Sprint / Run","Sprint")
          .add("Keyboard", 1)
          .build()
         )
 
         self.category("Multiplayer")
-        (self.keybind("Chat")
+        (self.keybind("Chat","Chat")
          .add("Keyboard", 0)
          .build()
         )
-        (self.keybind("PlayerList")
+        (self.keybind("Show Player List","PlayerList")
          .add("Keyboard", 1)
          .build()
         )
-        (self.keybind("ShowIDCard")
+        (self.keybind("Show ID","ShowIDCard")
          .add("Keyboard", 0)
          .build()
         )
-        (self.keybind("Talk")
+        (self.keybind("Talk","Talk")
          .add("Keyboard", 1)
          .build()
         )
 
         self.category("Misc")
-        (self.keybind("Interact")
+        (self.keybind("Interact / Pick up","Interact")
          .add("Keyboard", 1)
          .build()
         )
-        (self.keybind("Use")
+        (self.keybind("Use Item","Use")
          .add("Keyboard", 1)
          .build()
         )
@@ -207,8 +225,8 @@ class KeybindsManager:
 
         CTkLabel(self.scroll_frame, text=name, font=("Arial", 18, "bold")).pack(padx=6,pady=8, side="top", fill="x")
 
-    def keybind(self, name:str):
-        kb = Keybind(self.scroll_frame, name, self.action_mappings, self.ksw)
+    def keybind(self, name:str, id:str):
+        kb = Keybind(self.scroll_frame, name,id, self.action_mappings, self.ksw)
         self.keybinds.update({name:kb})
         self.ksw.keybinds.update({name:kb})
         return kb

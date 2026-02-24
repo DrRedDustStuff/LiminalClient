@@ -4,17 +4,25 @@ import os, shutil
 from pathlib import Path
 from .mod import Mod
 
+from ..typing import LC
+
 class GameManager:
     def __init__(self) -> None:
         self.game_found = False
         self.mods: dict[str, Mod] = {}
     
-    def search_drive(self, d:str):
+    def search_drive(self, d:str, lc:LC):
         folders_searched = 0
         folders_skipped = 0
         total_folders = 0
+
+        c = 0
+        n = 2*32
         for path, dirnames, filenames in Path(d).walk():
-            print(f"Drive {d[0:-1]}, Folders Searched: {folders_searched}/{total_folders}, Folders Skipped {folders_skipped}/{total_folders}                    \r", end="")
+            c += 1
+            if c == n:
+                lc.set_statuses(f"Drive {d[0:-1]}, Folders Searched: {folders_searched}/{total_folders}, Folders Skipped {folders_skipped}/{total_folders}", data.game_folder != "", data.steam_folder != "")
+                c = 0
 
             total_folders += 1
 
@@ -47,7 +55,7 @@ class GameManager:
 
         print()
 
-    def _find_game(self):
+    def _find_game(self, lc:LC):
         logger.info("Finding Game and Steam")
         if data.found:
             logger.info("Game already found")
@@ -57,15 +65,15 @@ class GameManager:
                 return
             logger.info("Folder is wrong")
         for drive in os.listdrives():
-            self.search_drive(drive)
+            self.search_drive(drive, lc)
         if not data.found:
             logger.error("Huh? Could not find game.")
         else:
             logger.info("Game Folder Found!")
     
-    def find_game(self):
+    def find_game(self, lc:LC):
         import threading
-        threading.Thread(target=self._find_game, daemon=False).start()
+        threading.Thread(target=lambda:self._find_game(lc), daemon=False).start()
 
     def start_game(self):
         import subprocess

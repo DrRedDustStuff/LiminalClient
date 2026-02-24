@@ -7,9 +7,26 @@
         "parent":"root",
         "font": ["Arial", 24, "bold"]
     },
+    "footer": {
+        "parent":"root",
+        "font": ["Arial", 14, "bold"],
+        "height":0
+    },
     "title": {
         "parent":"header",
         "text": "Liminal Client"
+    },
+    "finding_progress": {
+        "parent":"footer",
+        "text": "<Progress>"
+    },
+    "etb_found_status": {
+        "parent":"footer",
+        "text": "<Progress>"
+    },
+    "steam_found_status": {
+        "parent":"footer",
+        "text": "<Progress>"
     },
 
     "button": {

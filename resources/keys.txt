@@ -108,3 +108,25 @@ TMB2,ThumbMouseButton2
 MX,MouseX
 MY,MouseY
 MWA,MouseWheelAxis
+GP FB B,Gamepad_FaceButton_Bottom
+GP FB R,Gamepad_FaceButton_Right
+GP FB L,Gamepad_FaceButton_Left
+GP FB T,Gamepad_FaceButton_Top
+GP L Shoulder,Gamepad_LeftShoulder
+GP R Shoulder,Gamepad_RightShoulder
+GP L Trigger,Gamepad_LeftTrigger
+GP R Trigger,Gamepad_RightTrigger
+GP L Thumbstick,Gamepad_LeftThumbstick
+GP R Thumbstick,Gamepad_RightThumbstick
+GP DP Up,Gamepad_DPad_Up
+GP DP Down,Gamepad_DPad_Down
+GP DP Left,Gamepad_DPad_Left
+GP DP Right,Gamepad_DPad_Right
+GP Left X,Gamepad_LeftX
+GP Left Y,Gamepad_LeftY
+GP Right X,Gamepad_RightX
+GP Right Y,Gamepad_RightY
+DP Up,DpadUp
+DP Down,DpadDown
+DP Left,DpadLeft
+DP Right,DpadRight
