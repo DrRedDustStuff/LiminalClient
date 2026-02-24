@@ -1,5 +1,7 @@
-from customtkinter import CTk, CTkLabel, CTkButton, CTkSwitch, CTkFrame, BooleanVar
+from customtkinter import CTk, CTkLabel, CTkButton, CTkSwitch, CTkFrame, CTkTabview, BooleanVar
 from customtkinter.windows.widgets.core_widget_classes.ctk_base_class import CTkBaseClass
+
+import customtkinter as ctk
 
 from tkinter import filedialog, messagebox
 
@@ -9,12 +11,16 @@ from . import data, logger, resource
 
 from .core.game_manager import GameManager
 from .core.mod import Mod
+from .keybinds import KeybindsManager
+from .settings import SettingsManager
 
 class LiminalClient(CTk):
     def __init__(self):
         super().__init__()
         logger.info("Starting Liminal Client")
         self.game_manager = GameManager()
+
+        ctk.set_default_color_theme("resources/themes/blue.json")
 
         self.widget_manager: dict[str,CTkBaseClass] = {}
         self.mod_widget_manager: dict[str, CTkFrame] = {}
@@ -23,13 +29,13 @@ class LiminalClient(CTk):
         self.widgets(self.root)
         self.conf()
 
-        data.load()
-        self.game_manager.find_game()
-        self.on_found()
+        self.keybinds_manager = KeybindsManager(self.get("keybinds_frame")) # type: ignore
+        self.settings_manager = SettingsManager(self.get("settings_frame")) # type: ignore
 
         self.title(f"Liminal Client - {data.version}")
-        self.minsize(850,550)
-        self.geometry(f"850x550+{self.winfo_screenwidth()//2-425}+{self.winfo_screenheight()//2-275}")
+        self.minsize(data.size[0],data.size[1])
+        self.geometry(f"{data.size[0]}x{data.size[1]}+{self.winfo_screenwidth()//2-data.size[0]//2}+{self.winfo_screenheight()//2-data.size[1]/2}")
+        data.window_pos = self.winfo_screenwidth()//2-data.size[0]//2, self.winfo_screenheight()//2-data.size[1]/2
 
         self.do_splash = True
         self.splash_state = 0
@@ -83,10 +89,11 @@ class LiminalClient(CTk):
         self.add("title", CTkLabel(master)
             ).pack(anchor="n", fill="x", padx=8, pady=5, side="top")
 
+
         self.add("options_frame", CTkFrame(master)
             ).pack(anchor="n", fill="x", padx=32, pady=8, side="top")
         
-        self.add("rg_button", CTkButton(self.get("options_frame"), command=self.game_manager.start_game)
+        self.add("rg_button", CTkButton(self.get("options_frame"), command=self.start_game)
             ).pack(anchor="n", padx=8, pady=8, side="right")
         
         self.add("fm_button", CTkButton(self.get("options_frame"), command=self.find_mods)
@@ -95,9 +102,23 @@ class LiminalClient(CTk):
         self.add("im_button", CTkButton(self.get("options_frame"), command=self.import_mod)
             ).pack(anchor="n", padx=8, pady=8, side="left")
         
-        self.add("mods_frame", CTkFrame(master)
+        self.add("tab_view", CTkTabview(master)
             ).pack(anchor="n", fill="both", padx=32, pady=8, side="top", expand=True)
 
+        tab_view = self.get("tab_view")
+        if not isinstance(tab_view, CTkTabview): raise Exception("Well this is awkward")
+        
+        self.add("mods_frame", tab_view.add("mods")
+            ).grid()
+        
+        self.add("settings_frame", tab_view.add("settings")
+            ).grid()
+        
+        self.add("keybinds_frame", tab_view.add("keybinds"))
+
+    def start_game(self):
+        self.keybinds_manager.write()
+        self.game_manager.start_game()
 
     def find_mods(self):
         for n,w in self.mod_widget_manager.items(): w.destroy()
@@ -153,6 +174,17 @@ class LiminalClient(CTk):
     
     def get(self, name:str):
         return self.widget_manager[name]
+
+    def load(self):
+        data.load()
+        self.keybinds_manager.read()
+        self.keybinds_manager.widgets()
+        self.game_manager.find_game()
+        self.on_found()
+
+    def mainloop(self, *args, **kwargs):
+        self.after(30,self.load)
+        super().mainloop(*args, **kwargs)
 
     def exit(self):
         logger.info("Stopping Liminal Client")

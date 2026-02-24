@@ -12,6 +12,8 @@ SPECPATH = "./build"
 APPNAME = "Liminal Client"
 APPICON = "NONE"
 
+ZIP_POSTFIX = "Early access"
+
 RESOURCES_PATH = "resources"
 REMOVE_FROM_RESOURCES = ["data"]
 
@@ -32,17 +34,15 @@ subprocess.call(["pyinstaller",
     "--name", APPNAME+" "+data.version,
     "--contents-directory", RESOURCES_PATH,
     "--icon", APPICON,
+    "--windowed",
     *ei
     ])
 
 import shutil, os
 
-if os.path.exists(f"build/{APPNAME+" "+data.version}.spec"):
-    os.remove(f"build/{APPNAME+" "+data.version}.spec")
+if os.path.exists(f"build/{APPNAME+" "+data.version}.spec"): os.remove(f"build/{APPNAME+" "+data.version}.spec")
     
-if not os.path.exists(f"build/{APPNAME}"):
-    os.mkdir(f"build/{APPNAME}")
-
+if not os.path.exists(f"build/{APPNAME}"): os.mkdir(f"build/{APPNAME}")
 
 shutil.move(f"build/{APPNAME+" "+data.version}.exe", f"build/{APPNAME}/{APPNAME}.exe")
 shutil.copytree(RESOURCES_PATH, f"build/{APPNAME}/{RESOURCES_PATH}")
@@ -52,6 +52,6 @@ for dir in REMOVE_FROM_RESOURCES:
         os.remove(f"build/{APPNAME}/{RESOURCES_PATH}/{dir}")
 
 shutil.make_archive(APPNAME, "zip", f"build/{APPNAME}/")
-shutil.move(f"{APPNAME}.zip", f"build/{APPNAME}.zip")
+shutil.move(f"{APPNAME}.zip", f"build/{APPNAME if ZIP_POSTFIX == "" else APPNAME + " " + ZIP_POSTFIX}.zip")
 
 shutil.rmtree(f"build/{APPNAME}/")

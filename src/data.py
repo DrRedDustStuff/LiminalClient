@@ -2,7 +2,7 @@ import os
 from . import logger
 
 major = 0
-minor = 1
+minor = 2
 small = 0
 type = "beta"
 
@@ -11,6 +11,15 @@ version = f"{major}.{minor}.{small}{"-"+type if type != "" else ""}"
 # Helper
 mod_path = r"EscapeTheBackrooms/Content/Paks/--ModLoader--"
 movie_path = r"EscapeTheBackrooms/Content/Movies"
+
+app_data = fr"C:/Users/{os.getlogin()}/AppData/Local/"
+etb_config = app_data+"EscapeTheBackrooms/Saved/Config/WindowsNoEditor/"
+
+etb_user_settings = etb_config+"GameUserSettings.ini"
+etb_input = etb_config+"Input.ini"
+
+size = (850,550)
+window_pos = (0,0)
 
 # Data default state
 first_time = False
