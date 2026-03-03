@@ -122,12 +122,15 @@ class KeybindsManager:
 
         self._category = ""
 
+        self.parts = []
+
     def read(self):
         with open(data.etb_input, "r", encoding="utf-8") as r:
             text = r.read()
             indices = {}
-            for line in text.split("[/Script/Engine.InputSettings]\n")[1].split("\n"):
-                if line.strip() == "": continue
+            self.parts = text.split("[/Script/Engine.InputSettings]\n")
+            for line in self.parts[1].split("\n"):
+                if line.strip() == "" or (line.startswith("[") and line.endswith("]")): continue
                 t,v = line.split("=",1)
                 if t != "ActionMappings": continue
                 vals = v[1:-1].split(",")

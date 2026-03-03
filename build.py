@@ -21,6 +21,31 @@ EXCLUDE_IMPORTS = ["pygame-ce"]
 
 import subprocess
 
+version_file = f"""
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=({data.major,data.minor,data.build,data.revision}),
+    prodvers=({data.major,data.minor,data.build,data.revision}),
+  ),
+  StringFileInfo(
+    [
+      StringTable(
+        '040904B0',
+        [
+          StringStruct('CompanyName', 'LiminalLab'),
+          StringStruct('FileDescription', '{APPNAME}'),
+          StringStruct('FileVersion', '{data.major}.{data.minor}.{data.build}'),
+          StringStruct('InternalName', '{APPNAME}'),
+          StringStruct('OriginalFilename', '{APPNAME+" "+data.version}.exe'),
+          StringStruct('ProductName', '{APPNAME}'),
+          StringStruct('ProductVersion', '{data.major}.{data.minor}.{data.build}')
+        ]
+      )
+    ]
+  )
+)
+"""
+
 ei = []
 [(ei.append("--exclude-module"), ei.append(name)) for name in EXCLUDE_IMPORTS]
 

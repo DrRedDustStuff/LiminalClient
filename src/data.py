@@ -3,10 +3,11 @@ from . import logger
 
 major = 0
 minor = 2
-small = 2
+build = 5
+revision = 0
 type = "beta"
 
-version = f"{major}.{minor}.{small}{"-"+type if type != "" else ""}"
+version = f"{major}.{minor}{"-"+type if type != "" else ""}"
 
 # Helper
 mod_path = r"EscapeTheBackrooms/Content/Paks/--ModLoader--"

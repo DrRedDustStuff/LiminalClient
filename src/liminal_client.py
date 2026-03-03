@@ -7,12 +7,13 @@ from tkinter import filedialog, messagebox
 
 from tkinter import Misc
 
-from . import data, logger, resource
+from . import data, logger, resource, sound
 
 from .core.game_manager import GameManager
 from .core.mod import Mod
 from .keybinds import KeybindsManager
 from .settings import SettingsManager
+from .game import GameFilesManager
 
 from .typing import LC
 
@@ -20,9 +21,13 @@ class LiminalClient(CTk, LC):
     def __init__(self):
         super().__init__()
         logger.info("Starting Liminal Client")
-        self.game_manager = GameManager()
 
-        ctk.set_default_color_theme("resources/themes/blue.json")
+        self.game_manager = GameManager()
+        
+        logger.info("Moving to AppData/LiminalClient")
+        resource.move_to_appdata()
+
+        ctk.set_default_color_theme("./resources/theme/blue.json")
         ctk.set_appearance_mode("dark")
 
         self.widget_manager: dict[str,CTkBaseClass] = {}
@@ -34,16 +39,13 @@ class LiminalClient(CTk, LC):
 
         self.keybinds_manager = KeybindsManager(self.get("keybinds_frame")) # type: ignore
         self.settings_manager = SettingsManager(self.get("settings_frame")) # type: ignore
+        self.game_files_manager = GameFilesManager(self.get("game_frame")) # type: ignore
 
         self.title(f"Liminal Client - {data.version}")
         self.minsize(data.size[0],data.size[1])
         self.geometry(f"{data.size[0]}x{data.size[1]}+{self.winfo_screenwidth()//2-data.size[0]//2}+{self.winfo_screenheight()//2-data.size[1]/2}")
         data.window_pos = self.winfo_screenwidth()//2-data.size[0]//2, self.winfo_screenheight()//2-data.size[1]/2
 
-        self.do_splash = True
-        self.splash_state = 0
-        self.time = 0
-        self.splash()
 
     def splash(self):
         self.time += 0.01
@@ -112,13 +114,17 @@ class LiminalClient(CTk, LC):
         tab_view = self.get("tab_view")
         if not isinstance(tab_view, CTkTabview): raise Exception("Well this is awkward")
         
-        self.add("mods_frame", tab_view.add("mods")
+        self.add("mods_frame", tab_view.add("Mods")
             ).grid()
         
-        self.add("settings_frame", tab_view.add("settings")
+        self.add("game_frame", tab_view.add("Game")
             ).grid()
         
-        self.add("keybinds_frame", tab_view.add("keybinds"))
+        self.add("settings_frame", tab_view.add("Settings")
+            ).grid()
+        
+        self.add("keybinds_frame", tab_view.add("Keybinds")
+            ).grid()
 
         self.add("steam_found_status", CTkLabel(master)
             ).pack(anchor="n", fill="x", padx=2, pady=2, side="bottom")
@@ -204,6 +210,17 @@ class LiminalClient(CTk, LC):
         return self.widget_manager[name]
 
     def load(self):
+        logger.info("Loading")
+
+        sound.loadsound(resource.get_path("audio/startup.mp3"), "startup")
+        sound.configsound("startup", 1, 0)
+
+        self.do_splash = True
+        self.splash_state = 0
+        self.time = 0
+        sound.playsound("startup")
+        self.splash()
+
         data.load()
         self.keybinds_manager.read()
         self.keybinds_manager.widgets()
