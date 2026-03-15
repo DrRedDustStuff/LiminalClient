@@ -2,6 +2,7 @@ from customtkinter import CTk, CTkLabel, CTkButton, CTkSwitch, CTkFrame, CTkTabv
 from customtkinter.windows.widgets.core_widget_classes.ctk_base_class import CTkBaseClass
 
 import customtkinter as ctk
+import os
 
 from tkinter import filedialog, messagebox
 
@@ -150,6 +151,9 @@ class LiminalClient(CTk, LC):
         if data.game_folder == "":
             messagebox.showwarning("Wait for the Game to be found", "Cannot find mods if Escape the Backrooms has not been found")
             return
+        
+        if not os.path.exists(data.game_folder + "/EscapeTheBackrooms/Content/Paks/--ModLoader--"):
+            os.makedirs(data.game_folder + "/EscapeTheBackrooms/Content/Paks/--ModLoader--")
 
         for n,w in self.mod_widget_manager.items(): w.destroy()
         self.mod_widget_manager.clear()

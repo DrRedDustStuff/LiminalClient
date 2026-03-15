@@ -2,9 +2,7 @@ from typing import Any, Mapping
 
 from customtkinter import CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkToplevel, CTkOptionMenu
 
-from . import data, logger
-
-keys: list[tuple[str,...]] = [tuple(i.split(",", 1)) for i in open("resources/keys.txt","r", encoding="utf-8").read().split("\n")]
+from . import data, logger, datagen
 
 class KeybindSelectWindow(CTkToplevel):
     def __init__(self, master=None) -> None:
@@ -43,7 +41,14 @@ class KeybindSelectWindow(CTkToplevel):
         self.hide()
 
     def submit(self):
-        self.btn.configure(text=self.keybind.name+f" ({self._names[self.keybind.am[self.keybind.name][self.index]["Key"]]})") # type: ignore
+        self.btn.configure( # type: ignore
+            text=self.keybind._variants[self.index]+f""" ({
+                self.s.get()
+                })""")
+
+        self.keybind.am[ self.keybind.name ][ self.index ]["Key"] = self._choices[self.s.get()]
+
+        self.hide()
 
     def widgets(self, master):
         self.header = CTkLabel(master, text="<Header:Key>", font=("Arial", 32, "bold"))
@@ -63,7 +68,7 @@ class KeybindSelectWindow(CTkToplevel):
         self.index = i
         self.btn = btn
         self.header.configure(text=f"{self.keybind.name}")
-        self.select(self._names[self.keybind.am[self.keybind.name][self.index]["Key"]])
+        self.select(self._names[self.keybind.am[ self.keybind.name ][ self.index ]["Key"]])
         self.deiconify()
 
     def hide(self):
@@ -75,6 +80,7 @@ class Keybind:
         self.id = id
         self.name = name
         self.variants: dict[str,int] = {}
+        self._variants: dict[int,str] = {}
         self.am = action_mappings
         self.ksw = ksw
 
@@ -82,6 +88,7 @@ class Keybind:
 
     def add(self, name:str,index:int):
         self.variants.update({name:index})
+        self._variants.update({index:name})
         return self
 
     def build(self):
@@ -113,7 +120,7 @@ class KeybindsManager:
         self.action_mappings: dict[str, list[dict[str,str]]] = {}
 
         self.ksw = KeybindSelectWindow(self.frame)
-        for n,i in keys:
+        for n,i in datagen.keys:
             print(f"Name:{n} Key:{i}")
             self.ksw.add(n,i)
         self.ksw.widgets(self.ksw.frame)

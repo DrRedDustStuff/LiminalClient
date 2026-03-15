@@ -3,11 +3,13 @@ from . import logger
 
 major = 0
 minor = 2
-build = 5
+build = 6
 revision = 0
 type = "beta"
 
 version = f"{major}.{minor}{"-"+type if type != "" else ""}"
+
+built = False
 
 # Helper
 mod_path = r"EscapeTheBackrooms/Content/Paks/--ModLoader--"
@@ -60,7 +62,8 @@ def save():
     d = [
         "t" if found else "f",
         game_folder,
-        steam_folder
+        steam_folder,
+        version
     ]
 
     f.write("\n".join(d))

@@ -18,8 +18,9 @@ def move_to_appdata():
     if os.path.exists("./not_built"):
         if os.path.exists(data.app_data+"LiminalClient/"): shutil.rmtree(data.app_data+"LiminalClient/resources/")
         shutil.copytree("./resources/", data.app_data+"LiminalClient/resources/")
+        data.built = True
 
-    elif not os.path.exists(data.app_data+"LiminalClient/"):
+    elif os.path.exists("./resources/"):
         shutil.move("./resources/", data.app_data+"LiminalClient/resources/")
 
     os.chdir(data.app_data+"LiminalClient/")

@@ -1,4 +1,5 @@
 from src import data
+import datagen
 
 # Data
 TEMPPATH = "./build/temp"
