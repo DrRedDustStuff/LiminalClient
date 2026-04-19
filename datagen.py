@@ -19,4 +19,6 @@ with open("./src/datagen.py", "w", encoding="utf-8") as fw:
 
     fw.write(text)
 
+from PIL import Image
 
+Image.open("./resources/images/Icon.png").save("./resources/icon.ico")

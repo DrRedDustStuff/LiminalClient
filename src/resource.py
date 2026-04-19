@@ -3,7 +3,6 @@ import os, shutil
 from . import data
 
 def get_path(path:str):
-    #C:\Users\mrbui\AppData\Local\LiminalClient\resources
     return data.app_data + "LiminalClient/resources/" + path
     
 
@@ -15,13 +14,23 @@ def open_json(path:str):
 
 
 def move_to_appdata():
-    if os.path.exists("./not_built"):
-        if os.path.exists(data.app_data+"LiminalClient/"): shutil.rmtree(data.app_data+"LiminalClient/resources/")
-        shutil.copytree("./resources/", data.app_data+"LiminalClient/resources/")
-        data.built = True
-
-    elif os.path.exists("./resources/"):
-        shutil.move("./resources/", data.app_data+"LiminalClient/resources/")
-
+    data.built = not os.path.exists("./not_built")
+    
+    d = "x"
+    if os.path.exists("./resources/"):
+        if os.path.exists(data.app_data+"LiminalClient/"):
+            if os.path.exists(data.app_data+"LiminalClient/resources/data"):
+                with open(data.app_data+"LiminalClient/resources/data", "r", encoding="utf-8") as r:
+                    d = r.read()
+                    r.close()
+            shutil.rmtree(data.app_data+"LiminalClient/resources/")
+        if os.path.exists("./not_built"):
+            shutil.copytree("./resources/", data.app_data+"LiminalClient/resources/")
+            with open(data.app_data+"LiminalClient/resources/data", "w", encoding="utf-8") as w:
+                w.write(d)
+                w.close()
+        else:
+            shutil.move("./resources/", data.app_data+"LiminalClient/resources/")
+        
     os.chdir(data.app_data+"LiminalClient/")
 

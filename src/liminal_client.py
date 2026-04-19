@@ -21,32 +21,25 @@ from .typing import LC
 class LiminalClient(CTk, LC):
     def __init__(self):
         super().__init__()
+        resource.move_to_appdata()
+        logger.init()
         logger.info("Starting Liminal Client")
 
         self.game_manager = GameManager()
         
-        logger.info("Moving to AppData/LiminalClient")
-        resource.move_to_appdata()
-
-        ctk.set_default_color_theme("./resources/theme/blue.json")
         ctk.set_appearance_mode("dark")
 
+    def reg(self):
         self.widget_manager: dict[str,CTkBaseClass] = {}
         self.mod_widget_manager: dict[str, CTkFrame] = {}
         self.root = CTkFrame(self)
         self.root.place(x=0,y=0,relwidth=1,relheight=1)
-        self.widgets(self.root)
-        self.conf()
-
-        self.keybinds_manager = KeybindsManager(self.get("keybinds_frame")) # type: ignore
-        self.settings_manager = SettingsManager(self.get("settings_frame")) # type: ignore
-        self.game_files_manager = GameFilesManager(self.get("game_frame")) # type: ignore
 
         self.title(f"Liminal Client - {data.version}")
+        self.iconbitmap(resource.get_path("icon.ico"))
         self.minsize(data.size[0],data.size[1])
         self.geometry(f"{data.size[0]}x{data.size[1]}+{self.winfo_screenwidth()//2-data.size[0]//2}+{self.winfo_screenheight()//2-data.size[1]/2}")
         data.window_pos = self.winfo_screenwidth()//2-data.size[0]//2, self.winfo_screenheight()//2-data.size[1]/2
-
 
     def splash(self):
         self.time += 0.01
@@ -71,7 +64,7 @@ class LiminalClient(CTk, LC):
             self._splash.place_forget()
 
     def on_found(self):
-        if data.found:
+        if data.found and (data.game_folder != "" and data.steam_folder != ""):
             self.after(500, self.find_mods)
             self.set_statuses("Found All", data.game_folder != "", data.steam_folder != "")
             return
@@ -222,12 +215,25 @@ class LiminalClient(CTk, LC):
         self.do_splash = True
         self.splash_state = 0
         self.time = 0
+
+        data.load()
+
+        ctk.set_default_color_theme(resource.get_path(f"theme/{data.theme}.json"))
+        self.reg()
+        self.widgets(self.root)
+
+        self.keybinds_manager = KeybindsManager(self.get("keybinds_frame")) # type: ignore
+        self.settings_manager = SettingsManager(self.get("settings_frame"), self) # type: ignore
+        self.game_files_manager = GameFilesManager(self.get("game_frame")) # type: ignore
+
+        self.keybinds_manager.read()
+        self.keybinds_manager.widgets()
+        
+        self.conf()
+        
         sound.playsound("startup")
         self.splash()
 
-        data.load()
-        self.keybinds_manager.read()
-        self.keybinds_manager.widgets()
         self.set_statuses("Found" if data.found else "Looking", data.game_folder != "", data.steam_folder != "")
         self.game_manager.find_game(self)
         self.on_found()
@@ -235,6 +241,11 @@ class LiminalClient(CTk, LC):
     def mainloop(self, *args, **kwargs):
         self.after(30,self.load)
         super().mainloop(*args, **kwargs)
+
+    def restart(self):
+        self.root.destroy()
+        self.exit()
+        self.mainloop()
 
     def exit(self):
         logger.info("Stopping Liminal Client")

@@ -17,8 +17,10 @@ class GameFilesManager:
 
         self._category = ""
 
+        self.widgets()
+
     def widgets(self):
-        self.category("")
+        self.category("DISCLAIMER:\nCurrently in the works")
 
     def category(self, name:str):
         self._category = name

@@ -3,8 +3,45 @@ import ctypes, string
 import os, shutil
 from pathlib import Path
 from .mod import Mod
+from typing import Generator, Any
 
 from ..typing import LC
+
+def walk(parent:str, exclude:set[str]) -> Generator[tuple[Path,int,int], Any, int]:
+    skipped = 0
+    total = 0
+    if os.path.isfile(parent):
+        yield (Path(parent),total,skipped)
+    else:
+        try:
+            for path in os.listdir(parent):
+                total += 1
+                if path in exclude:
+                    skipped += 1
+                    continue
+                elif path.startswith("$"):
+                    skipped += 1
+                    continue
+                elif "cache" in path:
+                    skipped += 1
+                    continue
+                elif path.startswith("."):
+                    skipped += 1
+                    continue
+                elif path.startswith("Windows"):
+                    skipped += 1
+                    continue
+                elif os.path.exists(parent + "\\" + path):
+                    yield (Path(parent + "\\" + path),total,skipped)
+                    t = s = 0
+                    for p,t,s in walk(parent + "\\" + path, exclude):
+                        yield (p, t+total, s+skipped)
+                    total += t
+                    skipped += s
+                    
+        except: pass
+    return skipped
+        
 
 class GameManager:
     def __init__(self) -> None:
@@ -13,31 +50,19 @@ class GameManager:
     
     def search_drive(self, d:str, lc:LC):
         folders_searched = 0
-        folders_skipped = 0
-        total_folders = 0
 
         c = 0
         n = 2*32
-        for path, dirnames, filenames in Path(d).walk():
+
+        exclude = {"Common Files", "Python", "Videos", "Music", "Pictures", "CapCut", "aseprite", "Blender", 
+                         "Epic Games", "FL Studio 11", "Git", "Krita (x86)", "Godot", "CapCut Drafts",
+                         "ELEGOO SatelLite", "Eclipse Adoptium", "obs-studio", "Java", "JetBrains"}
+        for path,total,skipped in walk(d, exclude):
+            #print(path)
             c += 1
             if c == n:
-                lc.set_statuses(f"Drive {d[0:-1]}, Folders Searched: {folders_searched}/{total_folders}, Folders Skipped {folders_skipped}/{total_folders}", data.game_folder != "", data.steam_folder != "")
+                lc.set_statuses(f"Drive {d[0:-1]}, Folders Searched: {folders_searched}/{total}, Folders Skipped {skipped}/{total}", data.game_folder != "", data.steam_folder != "")
                 c = 0
-
-            total_folders += 1
-
-            l = False
-            for i in path.parts:
-                if "cache" in i: l = True
-                elif i in {"Common Files", "Python", "Videos", "Music", "Pictures", "CapCut", "aseprite", "Blender", 
-                         "Epic Games", "FL Studio 11", "Git", "Krita (x86)", "Godot", "CapCut Drafts",
-                         "ELEGOO SatelLite", "Eclipse Adoptium", "obs-studio", "Java", "JetBrains"}: l = True
-                elif i.startswith("."): l = True
-                elif i.startswith("Windows"): l = True
-                if l: break
-            if l or not path.is_dir():
-                folders_skipped += 1
-                continue
 
             folders_searched += 1
 
@@ -46,14 +71,14 @@ class GameManager:
                 if (path / "EscapeTheBackrooms").exists():
                     data.found = True
                     data.game_folder = str(path)
+                    print(data.game_folder)
             elif path.name == "Steam":
                 if data.steam_folder != "":continue
                 if (path / "steam.exe").exists():
                     data.found = True
                     data.steam_folder = str(path)
+                    print(data.steam_folder)
             if data.game_folder != "" and data.steam_folder != "": break
-
-        print()
 
     def _find_game(self, lc:LC):
         logger.info("Finding Game and Steam")
@@ -65,7 +90,7 @@ class GameManager:
                 return
             logger.info("Folder is wrong")
         for drive in os.listdrives():
-            self.search_drive(drive, lc)
+            self.search_drive(drive[0:2], lc)
         if not data.found:
             logger.error("Huh? Could not find game.")
         else:
