@@ -33,14 +33,11 @@ with open("./build/_version.txt", "w", encoding="utf-8") as w:
     ))
   w.close()
 
-EXCLUDE_IMPORTS = [
-   
-]
+f = open("./requirements.txt", "r", encoding="utf-8")
+requirements = f.readlines()
+f.close()
 
 import subprocess
-
-ei = []
-[(ei.append("--exclude-module"), ei.append(name)) for name in EXCLUDE_IMPORTS]
 
 command = ["pyinstaller",
     sys.argv[1],
@@ -54,7 +51,6 @@ command = ["pyinstaller",
     "--icon", APPICON,
     "--windowed",
     "--uac-admin" if sys.argv[2] == "installer" else None,
-    *ei
     ]
 
 while None in command:
