@@ -10,6 +10,7 @@ from .ui.widgets import (
     Button,
 )
 from .ui.mod_display import ModDisplay
+from .datafile import Datafile
 from . import data, resource
 
 from threading import Thread
@@ -61,6 +62,9 @@ class LiminalClient:
 
         root = self.main_
 
+        self.main_frame(root)
+
+    def main_frame(self, root: ScrollableFrame):
         self.header = Frame(root).pack(fill="x", expand=True)
         self.run_game_button = Button(
             self.header,

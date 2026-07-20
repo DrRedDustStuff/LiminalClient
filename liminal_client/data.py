@@ -7,6 +7,7 @@ def version():
     return "%s.%s.%s%s"%(major,minor,release,"-" + prefix if prefix != "" else "")
 
 import os
+from .datafile import Datafile
 
 login = os.getlogin()
 # Paths
@@ -14,6 +15,8 @@ steamLnk = "C:/Users/%s/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/St
 etbLnk = "C:/Users/%s/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Steam/Escape the Backrooms.url" % login
 steamPath = ""
 etbPath = ""
+
+data = Datafile("C:/Users/%s/AppData/Local/LiminalClient/data.dat"%login)
 
 ready = False
 
