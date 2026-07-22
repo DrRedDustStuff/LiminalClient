@@ -18,7 +18,11 @@ etbPath = ""
 
 data = Datafile("C:/Users/%s/AppData/Local/LiminalClient/data.dat"%login)
 
+# server
+url = "https://liminal-lab.vercel.app/"
+
 ready = False
+online = True
 
 def initialize():
     global steamPath

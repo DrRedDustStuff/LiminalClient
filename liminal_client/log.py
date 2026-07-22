@@ -79,3 +79,28 @@ def message(*msg:dict[str,Any]):
 
 def style(text:str,color:str="none",background:str="none",bold:bool=False,underline:bool=False,darken:bool=False,header:bool=False):
     return {"text":text,"color":color,"background":background,"bold":bold,"underline":underline,"darken":darken,"header":header}
+
+import time
+_name = "Main"
+def _formal(time:float|int):
+    strtime = str(int(time))
+    if len(strtime) == 1: return "0"+strtime
+    elif len(strtime) == 2: return strtime
+    return "00"
+def _time(epoch:float):
+    sec = epoch % 60
+    min = epoch/60 % 60
+    hour = epoch/60/24 % 24
+    return "%s:%s:%s"%(_formal(hour),_formal(min),_formal(sec)) #,f"{epoch.imag*100:.2f}"
+def _log(level:str,text:str,color:str):
+    message({"text":"%s [%s][%s]: %s"%(_time(time.time()),_name,level,text),"color":color})
+def _log_function(level:str,color:str,names:int=2):
+    func = lambda msg: _log(level,msg,color)
+    return [func for _ in range(names)]
+
+deb, debug =    _log_function("Debug",   "green",  2)
+inf, info =     _log_function("Info",    "white",  2)
+warn,warning =  _log_function("Warn",    "yellow", 2)
+err, error =    _log_function("Error",   "red",    2)
+crit,critical = _log_function("Critical","magenta",2)
+

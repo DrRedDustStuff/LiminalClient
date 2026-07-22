@@ -1,0 +1,20 @@
+# Important info
+Macro( "name", "Liminal Client" )
+Name( "![name]" )
+
+# Build info
+ScriptPath( "./main.py" )
+IsGui( True )
+SaveAsOne( False )
+
+# Zip instructions
+NewFolder( "./![name]" )
+
+CopyFolder( "./resources/", "./![name]/resources/" )
+CopyFile( "./dist/![name]/![name].exe", "./![name]/![name].exe" )
+CopyFolder( "./dist/![name]/_internal/", "./![name]/_internal/" )
+
+Archive( "![name]", "./![name]" )
+
+MoveFile( "./![name].zip", "./zipped/![name].zip" )
+MoveFolder( "./![name]/", "./zipped/latest/" )

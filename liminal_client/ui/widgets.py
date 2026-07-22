@@ -934,7 +934,7 @@ class Link(Label):
         compound: str = "center",
         anchor: str = "center",
         wraplength: int = 0,
-        command:Callable | None = None,
+        command: Callable | None = None,
         **kwargs
     ):
         super().__init__(
