@@ -6,6 +6,7 @@ Name( "![name]" )
 ScriptPath( "./main.py" )
 IsGui( True )
 SaveAsOne( False )
+IconFile( "./resources/image/icon.ico" )
 
 # Zip instructions
 NewFolder( "./![name]" )
@@ -14,7 +15,7 @@ CopyFolder( "./resources/", "./![name]/resources/" )
 CopyFile( "./dist/![name]/![name].exe", "./![name]/![name].exe" )
 CopyFolder( "./dist/![name]/_internal/", "./![name]/_internal/" )
 
+CopyFolder( "./![name]/", "./zipped/latest/" )
 Archive( "![name]", "./![name]" )
 
 MoveFile( "./![name].zip", "./zipped/![name].zip" )
-MoveFolder( "./![name]/", "./zipped/latest/" )

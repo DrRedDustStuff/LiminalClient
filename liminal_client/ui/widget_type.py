@@ -1,8 +1,11 @@
 from tkinter import Misc
-
+from typing import List
 
 class WidgetType:
     _id: int = 0
+    _translatable:bool
+    _key: str | List | None
+    _tc: str
 
     def __reg__(self): ...
     def tag(self, tag: str) -> "WidgetType": ...

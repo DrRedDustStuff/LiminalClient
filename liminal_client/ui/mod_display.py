@@ -10,23 +10,19 @@ from customtkinter import CTk, CTkImage, CTkFont
 import customtkinter as ctk
 from PIL.ImageTk import Image
 
+
 class ModDisplay(Frame):
     def __init__(
         self,
         master: Any = None,
-        mod_id:int=0,
-        
-        mod_name:str="<Mod>",
-        mod_creator:str="<Creator>"
+        mod_id: int = 0,
+        mod_name: str = "<Mod>",
+        mod_creator: str = "<Creator>",
     ):
-        super().__init__(
-            master,
-            200,
-            82
-        )
+        super().__init__(master, 200, 82)
 
         self._mid = mod_id
-        
+
         image = Image.open("./resources/image/disc.png", "r")
         self.image = Label(
             self,
@@ -37,17 +33,29 @@ class ModDisplay(Frame):
         self.image.pack(side="left", padx=4, pady=4)
 
         fg = self.cget("fg_color")
-        self.info = Frame(self, 300, height=1,fg_color=fg)
-        self.infc_name = Label(
-            self.info,fg_color=fg,
-            text=mod_name,
-            font=CTkFont("Arial",18,"bold"),
-        ).id(f"<InfC-Name:{self._mid}>").tag("ModDisplayText").pack(side="top", anchor="w", expand=False)
-        self.infc_creator = Label(
-            self.info,fg_color=fg,
-            text=mod_creator,
-            font=CTkFont("Arial",12),
-        ).id(f"<InfC-Creator:{self._mid}>").tag("ModDisplayText").pack(side="bottom", anchor="w", expand=False)
+        self.info = Frame(self, 300, height=1, fg_color=fg)
+        self.infc_name = (
+            Label(
+                self.info,
+                fg_color=fg,
+                text=mod_name,
+                font=CTkFont("Arial", 18, "bold"),
+            )
+            .id(f"<InfC-Name:{self._mid}>")
+            .tag("ModDisplayText")
+            .pack(side="top", anchor="w", expand=False)
+        )
+        self.infc_creator = (
+            Label(
+                self.info,
+                fg_color=fg,
+                text=mod_creator,
+                font=CTkFont("Arial", 12),
+            )
+            .id(f"<InfC-Creator:{self._mid}>")
+            .tag("ModDisplayText")
+            .pack(side="bottom", anchor="w", expand=False)
+        )
 
         self.info.pack(side="left", padx=4, pady=8, fill="y")
         self.info.pack_propagate(False)

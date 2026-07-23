@@ -92,10 +92,10 @@ def _time(epoch:float):
     min = epoch/60 % 60
     hour = epoch/60/24 % 24
     return "%s:%s:%s"%(_formal(hour),_formal(min),_formal(sec)) #,f"{epoch.imag*100:.2f}"
-def _log(level:str,text:str,color:str):
-    message({"text":"%s [%s][%s]: %s"%(_time(time.time()),_name,level,text),"color":color})
+def _log(level:str,text:str,format:tuple[str,...],color:str):
+    message({"text":"%s [%s][%s]: %s"%(_time(time.time()),_name,level,text%format),"color":color})
 def _log_function(level:str,color:str,names:int=2):
-    func = lambda msg: _log(level,msg,color)
+    func = lambda msg, *format: _log(level,msg,format,color)
     return [func for _ in range(names)]
 
 deb, debug =    _log_function("Debug",   "green",  2)

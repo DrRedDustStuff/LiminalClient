@@ -55,6 +55,7 @@ add("Name",      sp_dat("misc","name"))
 
 add("IsGui",    sp_dat("build","is_gui"))
 add("SaveAsOne",sp_dat("build","single_file"))
+add("IconFile", sp_dat("build","icon"))
 
 add("NewFolder",   sp_ins("mkdir"))
 add("NewFile",     sp_ins("mkfile"))
@@ -106,18 +107,19 @@ for _ in _instructions:
             try:
                 os.mkdir(args[0])
             except FileExistsError:
-                log.warn("Folder already exists, skipping creation")
+                log.warn("Folder %s already exists, skipping creation"%args[0])
 
         case "mkfile":
             try:
                 with open(args[0], "x") as f: f.close()
             except FileExistsError:
-                log.warn("File already exists, skipping creation")
+                log.warn("File %s already exists, skipping creation"%args[0])
 
         case "cpfile":
             shutil.copy(args[0],args[1])
 
         case "cpdir":
+            if os.path.exists(args[1]): shutil.rmtree(args[1])
             shutil.copytree(args[0],args[1])
 
         case "mkzip":

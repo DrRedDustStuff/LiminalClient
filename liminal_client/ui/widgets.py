@@ -35,9 +35,10 @@ from typing import Self
 
 # inject for Widgets
 class Widget(WidgetType):
-    def reg(self, translatable: bool, key: str | List | None = None):
+    def reg(self, translatable: bool, key: str | List | None = None, translate_config: str = "text"):
         self._id = 0
         self._translatable = translatable
+        self._tc = translate_config
         if self._translatable:
             self._key = key
         self.master = self.master
@@ -63,6 +64,14 @@ class Widget(WidgetType):
     def create(self, with_master):
         "unique method that gets called when needed"
         ...
+
+    def is_literal(self, val:bool, key:str|None=None):
+        self._translatable = not val
+        if not val: self._key = key
+        return self
+
+    def __repr__(self) -> str:
+        return "<%s %s %s>"%(type(self).__name__, self._key if self._key else ".", self.master)
 
 
 class Button(CTkButton, Widget):
@@ -283,7 +292,7 @@ class Entry(CTkEntry, Widget):
             state,
             **kwargs
         )
-        self.reg(True, placeholder_text)
+        self.reg(True, placeholder_text, "placeholder_text")
 
     def create(self, with_master):
         return super().__init__(with_master)
@@ -417,7 +426,7 @@ class OptionMenu(CTkOptionMenu, Widget):
             anchor,
             **kwargs
         )
-        self.reg(True, values)
+        self.reg(True, values, "values")
 
     def create(self, with_master):
         return super().__init__(with_master)
@@ -609,7 +618,7 @@ class SegmentedButton(CTkSegmentedButton, Widget):
             command,
             state,
         )
-        self.reg(True, values)
+        self.reg(True, values, "values")
 
     def create(self, with_master):
         return super().__init__(with_master)
