@@ -3,11 +3,14 @@ from typing import Any, Callable
 import subprocess
 import os
 import shutil
+import sys
+
+FILE = sys.argv[1]
 
 log.info("Builder!")
-log.info("Loading pybuild file")
+log.info("Loading %s file",FILE)
 src = ""
-with open("./pybuild", "r", encoding="utf-8") as rpbf:
+with open("./"+FILE, "r", encoding="utf-8") as rpbf:
     src = rpbf.read()
     rpbf.close()
 log.info("Creating functions")
@@ -133,3 +136,5 @@ for _ in _instructions:
 
         case "mvdir":
             shutil.move(args[0],args[1])
+
+log.info("Done building app!")

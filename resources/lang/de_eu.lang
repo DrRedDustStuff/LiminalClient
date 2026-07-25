@@ -1,0 +1,23 @@
+.:...
+:
+
+liminal_client.settings_header.label: Einstellungen:
+liminal_client.lang_sett_header.label: Sprache
+
+liminal_client.mods_header.label: Mods:
+
+liminal_client.run_game.button: Spiel starten
+liminal_client.run_game_offline.button: Spiel offline starten
+
+liminal_client.refresh_mods.button: Mods neuladen
+
+liminal_client.mod_search.entry: Mods durchsuchen...
+liminal_client.upload_files.button: Dateien hochladen
+liminal_client.browse_content.button: Mods durchsuchen
+
+liminal_client.credit.head: Mitwirkende:
+liminal_client.credit.creator: Entwickler: DaBlubcat
+
+liminal_client.about.head: Über:
+
+liminal_client.help.head: Hilfe:

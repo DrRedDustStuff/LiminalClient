@@ -5,7 +5,7 @@ from .ui_manager import WidgetManager
 
 from typing import Any
 
-from customtkinter import CTk, CTkImage, CTkFont
+from customtkinter import CTkImage, CTkFont
 
 import customtkinter as ctk
 from PIL.ImageTk import Image
@@ -19,7 +19,7 @@ class ModDisplay(Frame):
         mod_name: str = "<Mod>",
         mod_creator: str = "<Creator>",
     ):
-        super().__init__(master, 200, 82)
+        super().__init__(master, 200, 75)
 
         self._mid = mod_id
 
@@ -30,7 +30,7 @@ class ModDisplay(Frame):
             image=CTkImage(image, image, (64, 64)),
             fg_color="#4E4B22",
         ).tag("ModDisplayImage")
-        self.image.pack(side="left", padx=4, pady=4)
+        self.image.pack(side="left", padx=4, pady=4).is_literal(True)
 
         fg = self.cget("fg_color")
         self.info = Frame(self, 300, height=1, fg_color=fg)
@@ -44,6 +44,7 @@ class ModDisplay(Frame):
             .id(f"<InfC-Name:{self._mid}>")
             .tag("ModDisplayText")
             .pack(side="top", anchor="w", expand=False)
+            .is_literal(True)
         )
         self.infc_creator = (
             Label(
@@ -55,6 +56,7 @@ class ModDisplay(Frame):
             .id(f"<InfC-Creator:{self._mid}>")
             .tag("ModDisplayText")
             .pack(side="bottom", anchor="w", expand=False)
+            .is_literal(True)
         )
 
         self.info.pack(side="left", padx=4, pady=8, fill="y")

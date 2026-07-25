@@ -57,13 +57,19 @@ class WidgetManager:
                 yield id, widget, tags, ids
 
     @classmethod
-    def get_widget_by_id(cls, id: str):
+    def get_widget_by_id(cls, id: str, get_as:type[WidgetType]) -> tuple[str,Any,list[str],list[str]]:
         "Returns first instance of id"
         for _id, (widget, tags, ids) in cls.widgets.items():
             if id in ids:
-                return id, widget, tags, ids
+                if isinstance(widget,get_as):
+                    return id, widget, tags, ids
+                raise Exception("Widget with id %s is not expected type '%s' but rather '%s'"%(id,get_as.__name__,(type(widget).__name__)))
+        raise Exception("Widget with id %s not found"%id)
 
-
+    language_keys:dict[str,str] = {
+        "English":"en_us",
+        "Deutsch":"de_eu",
+    }
     @classmethod
     def translate(cls,lang:str):
         translation = kv_file.interpret(resource.path("lang/"+lang+".lang"))

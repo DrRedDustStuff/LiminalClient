@@ -39,10 +39,12 @@ class Widget(WidgetType):
         self._id = 0
         self._translatable = translatable
         self._tc = translate_config
+        WidgetManager.add(self)
         if self._translatable:
             self._key = key
+            #print("since widget has key, adding as '%s'"%key)
+            self.id(key if isinstance(key,str) else key[0]) # pyright: ignore[reportOptionalSubscript]
         self.master = self.master
-        WidgetManager.add(self)
         self.tag(str(type(self.__class__)))
 
     def tag(self, tag: str) -> Self:

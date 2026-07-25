@@ -10,6 +10,6 @@ swoosh = load("swoosh","wav")
 
 # == Channels == #
 notification_channel = mixer.Channel(0)
-notification_channel.set_volume(0.05)
+notification_channel.set_volume(0.5)
 def notification(sound:mixer.Sound):
     notification_channel.play(sound,fade_ms=500)

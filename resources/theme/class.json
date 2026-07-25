@@ -84,11 +84,11 @@
   },
   "CTkOptionMenu": {
     "corner_radius": 6,
-    "fg_color": "#000000",
-    "button_color": "#000000",
-    "button_hover_color": "#000000",
-    "text_color": "#000000",
-    "text_color_disabled": "#000000"
+    "fg_color": "primary",
+    "button_color": "primary",
+    "button_hover_color": "secondary",
+    "text_color": "button_text",
+    "text_color_disabled": "button_text_disabled"
   },
   "CTkComboBox": {
     "corner_radius": 6,
@@ -131,9 +131,9 @@
     "label_fg_color": "#000000"
   },
   "DropdownMenu": {
-    "fg_color": "#000000",
-    "hover_color": "#000000",
-    "text_color": "#000000"
+    "fg_color": "root_background",
+    "hover_color": "frame_border",
+    "text_color": "text"
   },
   "CTkFont": {
     "family": "./resources/font/main.ttf",

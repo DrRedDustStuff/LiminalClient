@@ -12,6 +12,7 @@ IconFile( "./resources/image/icon.ico" )
 NewFolder( "./![name]" )
 
 CopyFolder( "./resources/", "./![name]/resources/" )
+CopyFolder( "./plugins/", "./![name]/plugins/" )
 CopyFile( "./dist/![name]/![name].exe", "./![name]/![name].exe" )
 CopyFolder( "./dist/![name]/_internal/", "./![name]/_internal/" )
 

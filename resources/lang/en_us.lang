@@ -1,10 +1,15 @@
 .:...
+:
 
 liminal_client.settings_header.label: Settings:
+liminal_client.lang_sett_header.label: Language
 
 liminal_client.mods_header.label: Mods:
 
 liminal_client.run_game.button: Run Game
+liminal_client.run_game_offline.button: Run Game Offline
+
+liminal_client.refresh_mods.button: Refresh Mods
 
 liminal_client.mod_search.entry: Search Mods...
 liminal_client.upload_files.button: Upload Files

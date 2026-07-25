@@ -15,8 +15,9 @@ def interpret(path:str) -> dict[str, str]:
             k,v = line.split(":",1)
             key = k.strip()
             value = v.strip()
-            if value[0] == '"' and value[-1] == '"': value = value[1:-1]
-            if value in keyvalue.keys(): value = keyvalue[value]
+            if len(value) >= 2:
+                if value[0] == '"' and value[-1] == '"': value = value[1:-1]
+                if value in keyvalue.keys(): value = keyvalue[value]
             keyvalue.update({key:value})
         except ValueError as ve:
             log.error("Error at line %s of file %s, perhaps you forgot a colon?"%(i,path))
