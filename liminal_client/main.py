@@ -14,7 +14,6 @@ from .ui.widgets import (
     Slider,
     OptionMenu,
 )
-from .ui.mod_display import ModDisplay
 from .ui.ui_manager import WidgetManager
 from .datafile import Datafile
 
@@ -155,7 +154,6 @@ class LiminalClient:
         self.tk.iconbitmap(default=resource.path("image/icon.ico"))
         self.tk.title("Liminal Client")
 
-        self.mods: list[ModDisplay] = []
 
     def start(self):
         log.info("(%s) Starting load thread", self.get_time())
@@ -235,8 +233,6 @@ class LiminalClient:
         self.main.place(x=60, y=50, relwidth=1, relheight=1)
 
         self.page_initialize(master)
-
-        self._test_mods()
         
 
     def page_initialize(self, master):
@@ -248,7 +244,7 @@ class LiminalClient:
             page(self.main)
 
         from .pages.main import Main
-        self.main_frame: Main = WidgetManager.get_widget_by_id("liminal_client.main.page",Main)[1]
+        self.main_frame: Main = WidgetManager.get_widget_by_id("liminal_client.main.page")[0]
 
         self.show_page("main")
 
@@ -291,37 +287,7 @@ class LiminalClient:
             else:
                 raise UnhandledCase()
 
-    def clear_mod_widgets(self):
-        for _ in self.mods.copy():
-            self.mods.pop(0).destroy()
 
-    def add_mod_widget(
-        self,
-        id: int = 0,
-        name: str = "NAME",
-        creator: str = "CREATOR",
-    ):
-        mod_display = ModDisplay(self.main_frame.mods_frame, id, name, creator)
-        self.mods.append(mod_display)
-        mod_display.pack(padx=10, pady=4, fill="x")
-
-    def _test_mods(self):
-        self.add_mod_widget(0, "Interpose", "Mythical")
-        self.add_mod_widget(1, "PyModMenu", "Py guy")
-
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
-        self.add_mod_widget(4, "Mischievous", "Miscor")
 
 
 _instance: LiminalClient | None = None

@@ -11,6 +11,8 @@ from liminal_client.ui.widgets import (
     Frame,
 )
 
+from .mod_display import ModDisplay
+
 from tkinter import filedialog
 
 import os
@@ -21,6 +23,7 @@ class ModManager(Plugin):
     version = "1.0"
 
     def load(self):
+        self.mods: list[ModDisplay] = []
         self.instance = main.get_instance()
         self.instance.all_widgets_loaded.bind(self.all_widgets_loaded)
 
@@ -31,16 +34,18 @@ class ModManager(Plugin):
         path = data.etbPath+data.modsSuffix
         for file in os.listdir(path):
             if not os.path.isfile(path+file): continue
+            if not (file.endswith(".pak") or file.endswith(".pak.dis")): continue
+            enabled = file.endswith(".pak")
             name = file.removesuffix(".dis").removesuffix(".pak")
             creator = "Unknown"
             id = -1
-            self.instance.add_mod_widget(id,name,creator)
+            self.add_mod_widget(id,name,creator,enabled)
 
     def refresh_mods(self,_):
         log.info("Refreshing mods")
-        self.instance.clear_mod_widgets()
+        self.clear_mod_widgets()
         self.load_mods()
-        h = len(self.instance.mods)*(75+8) # * (Mod display height + double pady)
+        h = len(self.mods)*(75+8) # * (Mod display height + double pady)
         if h > 400:
             self.mods_frame.pack_propagate(True)
         else:
@@ -55,13 +60,28 @@ class ModManager(Plugin):
         shutil.copyfile(filepath,data.etbPath+data.modsSuffix+filename)
         self.refresh_mods(None)
 
+    def add_mod_widget(
+        self,
+        id: int = 0,
+        name: str = "NAME",
+        creator: str = "CREATOR",
+        enabled: bool = True,
+    ):
+        mod_display = ModDisplay(self,self.instance.main_frame.mods_frame, id, name, creator, enabled)
+        self.mods.append(mod_display)
+        mod_display.pack(padx=10, pady=4, fill="x")
+        
+    def clear_mod_widgets(self):
+        for _ in self.mods.copy():
+            self.mods.pop(0).destroy()
+
     def initialize(self):
         log.info("Initializing plugin %s",self.id)
-        self.mods_frame: Frame = WidgetManager.get_widget_by_id("liminal_client.mods.frame",Frame)[1]
-        self.refresh_mods_button: Button = WidgetManager.get_widget_by_id("liminal_client.refresh_mods.button", Button)[1]
+        self.mods_frame: Frame = WidgetManager.get_widget_by_id("liminal_client.mods.frame")[0]
+        self.refresh_mods_button: Button = WidgetManager.get_widget_by_id("liminal_client.refresh_mods.button")[0]
         self.refresh_mods_button.bind("<Button-1>",self.refresh_mods)
 
-        self.upload_mod_button: Button = WidgetManager.get_widget_by_id("liminal_client.upload_files.button",Button)[1]
+        self.upload_mod_button: Button = WidgetManager.get_widget_by_id("liminal_client.upload_files.button")[0]
         self.upload_mod_button.bind("<Button-1>",self.upload_mod)
 
         self.refresh_mods(None)

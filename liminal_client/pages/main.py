@@ -12,8 +12,6 @@ from .. import sound
 from .. import resource
 from .. import button_functions
 
-from ..ui.mod_display import ModDisplay
-
 class Main(Page):
     key = "liminal_client.main.page"
 

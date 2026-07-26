@@ -7,8 +7,12 @@ from typing import List, Any
 from customtkinter import ThemeManager
 import json
 
+WidgetInstance = tuple[Any, list[str], list[str]]
+
 class WidgetManager:
-    widgets: dict[int, tuple[WidgetType, list[str], list[str]]] = {}
+    widgets: dict[int, WidgetInstance] = {}
+    tags: dict[str,list[WidgetInstance]] = {}
+    ids: dict[str, WidgetInstance] = {}
     idx: int = 0
 
     @classmethod
@@ -28,13 +32,18 @@ class WidgetManager:
     def tag(cls, tag: str, w: WidgetType):
         widget, tags, ids = cls.widgets[w._id]
         tags.append(tag)
-        cls.widgets[w._id] = (widget, tags, ids)
+        wg = widget, tags, ids
+        cls.widgets[w._id] = wg
+        if not tag in cls.tags.keys(): cls.tags.update({tag:[]})
+        cls.tags[tag].append(wg)
 
     @classmethod
     def id(cls, id: str, w: WidgetType):
         widget, tags, ids = cls.widgets[w._id]
         ids.append(id)
-        cls.widgets[w._id] = (widget, tags, ids)
+        wg = widget, tags, ids
+        cls.widgets[w._id] = wg
+        cls.ids.update({id:wg})
 
     @classmethod
     def get_all_widgets(cls):
@@ -52,27 +61,44 @@ class WidgetManager:
     @classmethod
     def get_widgets_by_tag(cls, tag: str):
         "Returns all instances of widgets with tag"
-        for id, (widget, tags, ids) in cls.widgets.items():
-            if tag in tags:
-                yield id, widget, tags, ids
+        for (widget, tags, ids) in cls.tags[tag]:
+            yield widget, tags, ids
 
     @classmethod
-    def get_widget_by_id(cls, id: str, get_as:type[WidgetType]) -> tuple[str,Any,list[str],list[str]]:
+    def get_widget_by_id(cls, id: str) -> WidgetInstance:
         "Returns first instance of id"
-        for _id, (widget, tags, ids) in cls.widgets.items():
-            if id in ids:
-                if isinstance(widget,get_as):
-                    return id, widget, tags, ids
-                raise Exception("Widget with id %s is not expected type '%s' but rather '%s'"%(id,get_as.__name__,(type(widget).__name__)))
-        raise Exception("Widget with id %s not found"%id)
+        return cls.ids[id]
 
     language_keys:dict[str,str] = {
         "English":"en_us",
         "Deutsch":"de_eu",
     }
+    translation:dict[str,str] = {}
+    @classmethod
+    def get_translation_map(cls,lang:str):
+        cls.translation = kv_file.interpret(resource.path("lang/"+lang+".lang"))
+
+    @classmethod
+    def translate_widget(cls,widget:WidgetType):
+        #print("translating",widget)
+        if isinstance(widget._key, List):
+            if not widget._key[0] in cls.translation.keys():
+                return
+            translated = []
+            for key in widget._key:
+                translated.append(cls.translation[key])
+            widget.configure(**{widget._tc:translated})
+        elif isinstance(widget._key, str):
+            if not widget._key in cls.translation.keys():
+                log.warn("Missing translatable key for '%s'"%(widget._key))
+                return
+            widget.configure(**{widget._tc:cls.translation[widget._key]})
+        else: raise Exception("Hmmmmmmmmmmmmmmmmmm. this should´nt happen...")
+
+    
     @classmethod
     def translate(cls,lang:str):
-        translation = kv_file.interpret(resource.path("lang/"+lang+".lang"))
+        cls.get_translation_map(lang)
 
         for id, widget, tags, ids in WidgetManager.get_all_widgets():
             if not widget._translatable: continue
@@ -82,19 +108,7 @@ class WidgetManager:
             # just to make pylance happy
             if widget._key is None: continue
 
-            if isinstance(widget._key, List):
-                if not widget._key[0] in translation.keys():
-                    continue
-                translated = []
-                for key in widget._key:
-                    translated.append(translation[key])
-                widget.configure(**{widget._tc:translated})
-            elif isinstance(widget._key, str):
-                if not widget._key in translation.keys():
-                    log.warn("Missing translatable key for '%s'"%(widget._key))
-                    continue
-                widget.configure(**{widget._tc:translation[widget._key]})
-            else: raise Exception("Hmmmmmmmmmmmmmmmmmm. this should´nt happen...")
+            cls.translate_widget(widget)
 
     theme = {}
     colors = {}
