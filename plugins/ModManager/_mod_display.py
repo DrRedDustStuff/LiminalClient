@@ -1,11 +1,11 @@
-from liminal_client.ui.widgets import (
+from blublib.ui.widgets import (
     Frame, 
     Label,
     Switch,
     Button,
 )
 
-from liminal_client import resource
+from blublib import resource
 
 from customtkinter import CTkImage, CTkFont
 
@@ -18,7 +18,7 @@ def str_id(name: str, creator: str, id: int, v: str):
 
 
 def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
-    image = Image.open("./resources/image/disc.png", "r")
+    image = Image.open("./src/resources/image/disc.png", "r")
     image = (
         Label(
             self,

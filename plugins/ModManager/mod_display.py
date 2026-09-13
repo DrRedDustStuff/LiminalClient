@@ -1,18 +1,18 @@
 from typing import Any
 
-from liminal_client.ui.widgets import (
+from blublib.ui.widgets import (
     Frame, 
     Label,
     Switch,
     Button,
 )
-from liminal_client.ui.ui_manager import WidgetManager
-from liminal_client import data
-from liminal_client import log
+from blublib.ui.ui_manager import WidgetManager
+from src import data
 
 from customtkinter import BooleanVar
 
 from ._mod_display import widgets, str_id
+from . import loggers
 
 import os
 import shutil
@@ -69,7 +69,7 @@ class ModDisplay(Frame):
 
     def toggle(self):
         new = self.mng_enable.get() == 1
-        log.info("Toggled mod %s from %s to %s",self._mn,prettify(self._me),prettify(new))
+        loggers.mod_manager.info("Toggled mod %s from %s to %s",self._mn,prettify(self._me),prettify(new))
         os.rename(
             data.etbPath+data.modsSuffix+self._mn+self.get_postfix(self._me),
             data.etbPath+data.modsSuffix+self._mn+self.get_postfix(new),

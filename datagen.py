@@ -1,5 +1,5 @@
 from typing import Any
-from liminal_client import log
+from src import loggers
 
 from PIL import Image
 from PIL import ImageDraw

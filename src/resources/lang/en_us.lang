@@ -1,0 +1,35 @@
+liminal_client...label:...
+:
+
+// Main page
+liminal_client.run_game.button: Run Game
+liminal_client.run_game_offline.button: Run Game Offline
+
+liminal_client.mods.header.label: Mods:
+liminal_client.refresh_mods.button: Refresh Mods
+
+liminal_client.mod_search.entry: Search Mods...
+liminal_client.upload_files.button: Upload Files
+liminal_client.browse_content.button: Browse Mods
+
+liminal_client.credit.head.label: Credit:
+liminal_client.credit.creator.label: Creator: DaBlubcat
+
+liminal_client.about.head.label: About:
+
+liminal_client.help.head.label: Help:
+
+// Settings page
+liminal_client.settings.header.label: Settings:
+
+liminal_client.general.header.label: General
+liminal_client.english.item.optionmenu: English
+liminal_client.german.item.optionmenu: Deutsch
+
+liminal_client.lang_sett.header.label: Language
+liminal_client.sound.header.label: Sound:
+liminal_client.setting.notification.label: Notification Volume
+
+// Mod download page
+liminal_client.mod_download.header.label: Mod Downloading
+
