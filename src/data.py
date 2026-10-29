@@ -9,6 +9,8 @@ def version():
 
 
 import os
+from blublib import kv_file
+from blublib import resource
 
 login = os.getlogin()
 # Paths
@@ -30,11 +32,15 @@ ready = False
 loading_failed = False
 online = True
 
+console_enabled = False
+
 def initialize():
     global steamPath
     global path
     global etbPath
     global ready
+
+    steamPath = ""
 
     with open(steamLnk, "rb") as rbsl:
         stb = rbsl.read()
@@ -63,3 +69,9 @@ def initialize():
     )
 
     ready = True
+
+    global console_enabled
+
+    data = kv_file.interpret(resource.data("Source", "config.kv"))
+
+    console_enabled = data["liminal_client.console_enabled.bool"] == "true"

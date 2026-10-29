@@ -6,6 +6,7 @@ add_page: Callable
 
 pages:"list[type[Page]]" = []
 class Page(ScrollableFrame):
+    plugin: str = "Source"
     key: Identifier = Identifier.get("...","")
     add_direct = True
     def __init__(self, parent) -> None:

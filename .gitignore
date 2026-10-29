@@ -1,10 +1,13 @@
 /.vscode/
 /datgen_rec/
 /hidden/
+/installer_files/
 /dist/
 /build/
 /zipped/
+/files/
 /Liminal Client.spec
+/Installer.spec
 /Liminal Client/
 /liminal_client/__pycache__/
 /liminal_client/ui/__pycache__/

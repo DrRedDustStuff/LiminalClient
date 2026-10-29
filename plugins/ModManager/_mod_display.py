@@ -18,7 +18,7 @@ def str_id(name: str, creator: str, id: int, v: str):
 
 
 def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
-    image = Image.open("./src/resources/image/disc.png", "r")
+    image = Image.open(resource.path("Source","image/disc.png"), "r")
     image = (
         Label(
             self,
@@ -74,7 +74,7 @@ def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
             40,
             40,
             text="",
-            image=resource.image("trash.png",(20,20)),
+            image=resource.image("Source", "trash.png",(20,20)),
         )
         .id(str_id(mod_name,mod_creator,mod_id,"Delete"))
         .pack(side="right",anchor="e",padx=5)

@@ -27,7 +27,7 @@ class Main(Page):
             width=0,
             height=42,
             font=CTkFont(None, 16, "bold"),
-            image=resource.image("round-play.png"),
+            image=resource.image("Source", "round-play.png"),
             command=button_functions.run_game,
         ).pack(side="right", pady=12, padx=4)
         run_game_offline_button = Button(
@@ -36,7 +36,7 @@ class Main(Page):
             width=0,
             height=42,
             font=CTkFont(None, 16, "bold"),
-            image=resource.image("round-play.png"),
+            image=resource.image("Source", "round-play.png"),
             command=button_functions.run_game_offline,
         ).pack(side="right", pady=12, padx=4)
 
@@ -46,7 +46,7 @@ class Main(Page):
             width=0,
             height=38,
             font=CTkFont(None, 16, "bold"),
-            image=resource.image("refresh.png"),
+            image=resource.image("Source","refresh.png"),
         ).pack(side="left", pady=14, padx=4)
 
         mods_header = Label(
@@ -60,7 +60,7 @@ class Main(Page):
             hero,
             130,
             text=Identifier.id("upload_files"),
-            image=resource.image("folder-plus.png"),
+            image=resource.image("Source","folder-plus.png"),
         ).pack(side="right", padx=2)
 
         browse_content = Button(
@@ -68,7 +68,7 @@ class Main(Page):
             140,
             text=Identifier.id("browse_content"),
             #state="disabled",
-            image=resource.image("compass.png"),
+            image=resource.image("Source","compass.png"),
             command=lambda: self.instance.show_page(Identifier.id("mod_download"))
         ).pack(side="right", padx=2)
 

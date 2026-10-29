@@ -8,11 +8,17 @@ from typing import Any, Callable, Literal, TypeAlias, cast
 from blublib.ui.labeled_slider import LabeledSlider
 from blublib import sound
 from blublib import resource
+import log
+from blublib.plugin.plugin_event import PluginEvent
 from blublib.resource import Identifier
 import json
 import os
 
-SettingsWidgetType: TypeAlias = Literal["slider", "switch"]
+SettingsWidgetType: TypeAlias = Literal[
+    "slider",
+    "switch",
+    "dropdown",
+]
 
 
 def category(id: Identifier):
@@ -21,6 +27,7 @@ def category(id: Identifier):
 
 class Settings(Page):
     key = Identifier.id("settings")
+    load_settings: PluginEvent = PluginEvent()
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -51,9 +58,24 @@ class Settings(Page):
             lambda x: None,
             sound_category,
         )
-        self.switch(
-            Identifier.id("TEST"), Identifier.id("TEST"), lambda x: None, sound_category
+
+        logging_category = Identifier.id("logging")
+        self.category(logging_category)
+        self.header(Identifier.id("logging"), logging_category)
+        self.dropdown(
+            Identifier.id("logging_level"),
+            [
+                "Debug",
+                "Info",
+                "Warn",
+                "Error",
+                "Critical",
+            ],
+            lambda val: log.Logger.set_level(cast(log.Level,val)),
+            logging_category
         )
+
+        Settings.load_settings.call()
 
     def category(self, id: Identifier, parent: Identifier | None = None):
         frame = (
@@ -172,8 +194,12 @@ class Settings(Page):
                 case "slider":
                     slider: Slider = settings_widget
                     slider.set(float(val))
+                case "dropdown":
+                    dropdown: OptionMenu = settings_widget
+                    dropdown.set(val)
                 case "switch":
-                    print("is in fact a switch")
+                    zwitch: Switch = settings_widget
+                    zwitch.configure(False, variable=bool(val))
 
     def save(self):
         with open(resource.datapath("settings.json"), "w", encoding="utf-8") as wsf:
