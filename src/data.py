@@ -3,6 +3,7 @@ minor = 0
 release = 0
 prefix = "beta"
 
+SVG_QUALITY = 64
 
 def version():
     return "%s.%s.%s%s" % (major, minor, release, "-" + prefix if prefix != "" else "")

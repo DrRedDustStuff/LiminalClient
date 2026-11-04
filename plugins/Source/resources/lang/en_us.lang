@@ -30,6 +30,8 @@ liminal_client.lang_sett.header.label: Language
 liminal_client.sound.header.label: Sound:
 liminal_client.setting.notification.label: Notification Volume
 
+liminal_client.logging.header.label: Logging
+
 // Mod download page
 liminal_client.mod_download.header.label: Mod Downloading
 

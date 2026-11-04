@@ -23,6 +23,8 @@ import os
 import shutil
 import json
 
+import asyncio
+
 
 class ModManager(Plugin):
     id = "mod_manager"
@@ -48,12 +50,15 @@ class ModManager(Plugin):
         loggers.mod_manager.debug("%s received that all widgets were loaded", self)
 
     def load_mods(self):
-        path = data.etbPath + data.modsSuffix
-        for file in os.listdir(path):
+        asyncio.run(self._load_mods())
+
+    async def _load_mods(self):
+        mod_display_queue: list = []
+        async def load_mod(file: str):
             if not os.path.isfile(path + file):
-                continue
+                return
             if not (file.endswith(".pak") or file.endswith(".pak.dis")):
-                continue
+                return
             enabled = file.endswith(".pak")
             filename = file.removesuffix(".dis").removesuffix(".pak")
             if filename in self.mods_data["online"].keys():
@@ -79,7 +84,16 @@ class ModManager(Plugin):
                 creator = "..."
                 name = filename
                 id = -128
-            self.add_mod_widget(id, name, creator, enabled)
+            mod_display_queue.append((id,name,creator,enabled))
+
+        path = data.etbPath + data.modsSuffix
+        await asyncio.gather(*[load_mod(file) for file in os.listdir(path)])
+        mod_pack_queue = []
+        for id,name,creator,enabled in mod_display_queue:
+            mod_pack_queue.append(self.add_mod_widget(id, name, creator, enabled))
+            
+        for mod_display in mod_pack_queue:
+            mod_display.pack(padx=10, pady=4, fill="x")
 
     def refresh_mods(self, _):  # _ is event
         loggers.mod_manager.info("Refreshing mods")
@@ -122,7 +136,7 @@ class ModManager(Plugin):
             self, self.instance.main_frame.mods_frame, id, name, creator, enabled
         )
         self.mods.append(mod_display)
-        mod_display.pack(padx=10, pady=4, fill="x")
+        return mod_display
 
     def clear_mod_widgets(self):
         for _ in self.mods.copy():

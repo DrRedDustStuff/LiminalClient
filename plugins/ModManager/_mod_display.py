@@ -42,7 +42,6 @@ def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
         )
         .id(str_id(mod_name, mod_creator, mod_id, "Name"))
         .tag("ModDisplayText")
-        .pack(side="top", anchor="w", expand=False)
         .is_literal(True)
     )
     infc_creator = (
@@ -54,7 +53,6 @@ def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
         )
         .id(str_id(mod_name, mod_creator, mod_id, "Creator"))
         .tag("ModDisplayText")
-        .pack(side="bottom", anchor="w", expand=False)
         .is_literal(True)
     )
 
@@ -77,7 +75,6 @@ def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
             image=resource.image("Source", "trash.png",(20,20)),
         )
         .id(str_id(mod_name,mod_creator,mod_id,"Delete"))
-        .pack(side="right",anchor="e",padx=5)
         .is_literal(True)
     )
 
@@ -88,7 +85,6 @@ def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
             text="",
         )
         .id(str_id(mod_name,mod_creator,mod_id,"Toggle"))
-        .pack(side="right",anchor="e",padx=5)
         .is_literal(True)
     )
 
@@ -97,3 +93,11 @@ def widgets(self: Frame, mod_name: str, mod_creator: str, mod_id: int):
 
     self.tag("ModDisplay")
     self.pack_propagate(False)
+
+    return (
+        image, 
+        infc_name.pack(side="top", anchor="w", expand=False), 
+        infc_creator.pack(side="bottom", anchor="w", expand=False), 
+        mng_delete.pack(side="right",anchor="e",padx=5), 
+        mng_enable.pack(side="right",anchor="e",padx=5)
+    )

@@ -68,11 +68,84 @@ def exec(args: list[str]):
     return 0
 
 @console.reg
+def execif(args: list[str]):
+    "execif <plugin> <file> <condition> | Executes file inside plugin data/scripts folder if condition is true. Condition should be: a, a<b, a<=b, a==b, a>=b, a>b."
+    if len(args) != 3:
+        console.append_text("Missing arguments")
+        return 1
+    plugin = args[0]
+    file = args[1]
+    condition = args[2]
+
+    # parse condition
+    value = False
+    try:
+        if "==" in condition:
+            a, b = condition.split("==",1)
+            a,b=a.strip(),b.strip()
+            va,vb = console.ctx.variables[a],console.ctx.variables[b]
+            if not va==vb: return 0
+
+        elif "<=" in condition:
+            a, b = condition.split("<=",1)
+            a,b=a.strip(),b.strip()
+            va,vb = console.ctx.variables[a],console.ctx.variables[b]
+            if not va<=vb: return 0
+
+        elif ">=" in condition:
+            a, b = condition.split(">=", 1)
+            a,b=a.strip(),b.strip()
+            va,vb = console.ctx.variables[a],console.ctx.variables[b]
+            if not va>=vb: return 0
+
+        elif "<" in condition:
+            a, b = condition.split("<", 1)
+            a,b=a.strip(),b.strip()
+            va,vb = console.ctx.variables[a],console.ctx.variables[b]
+            if not va<vb: return 0
+
+        elif ">" in condition:
+            a, b = condition.split(">", 1)
+            a,b=a.strip(),b.strip()
+            va,vb = console.ctx.variables[a],console.ctx.variables[b]
+            if not va>vb: return 0
+
+        else:
+            a = condition.strip()
+            va = console.ctx.variables[a]
+            if va==0: return 0
+
+            
+    except KeyError as ke:
+        console.append_text("Variable "+str(ke)+" does not exist")
+        return 1
+
+    exec([plugin,file])
+
+    return 0
+
+@console.reg
+def var(args: list[str]):
+    "var <name> <value> | sets variable name to value, creates it if necessary."
+    if len(args) != 2:
+        console.append_text("Missing arguments")
+        return 1
+
+    name = args[0]
+    if not args[1].isdigit():
+        console.append_text("Value is not an integer")
+        return 2
+    value = int(args[1])
+
+    console.ctx.variables.update({name: value})    
+    return 0
+
+@console.reg
 def help(args: list[str]):
     "help <command> | Show help for the command"
     if len(args) == 0:
         for k,cmd in console.ctx.commands.items():
-            console.append_text(cmd.__doc__ if cmd.__doc__ else "No documentation")
+            console.append_text(cmd.__doc__ if cmd.__doc__ else (cmd.__name__+" | No documentation"))
         return 0
 
     cmd = args[0]
@@ -81,5 +154,5 @@ def help(args: list[str]):
         return 1
 
     command = console.ctx.commands[cmd]
-    console.append_text(command.__doc__ if command.__doc__ else "No documentation")
+    console.append_text(command.__doc__ if command.__doc__ else (command.__name__+" | No documentation"))
     return 0

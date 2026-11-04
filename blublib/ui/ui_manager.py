@@ -1,0 +1,148 @@
+from .widget_type import WidgetType
+from .. import resource
+from ..resource import Identifier
+from .. import kv_file
+from typing import List, Any
+from customtkinter import ThemeManager
+import json
+from blublib import log
+import os
+
+WidgetInstance = tuple[Any, list[str], list[str]]
+
+class WidgetManager:
+    widgets: dict[int, WidgetInstance] = {}
+    tags: dict[str,list[WidgetInstance]] = {}
+    ids: dict[str, WidgetInstance] = {}
+    idx: int = 0
+
+    @classmethod
+    def get_widgets(cls):
+        for k, (widget, tags, ids) in cls.widgets.items():
+            yield widget, (tags if len(tags) > 0 else "all"), (
+                ids if len(ids) > 0 else ""
+            )
+
+    @classmethod
+    def add(cls, widget: WidgetType):
+        cls.widgets.update({cls.idx: (widget, ["all"], [])})
+        widget._id = cls.idx
+        cls.idx += 1
+
+    @classmethod
+    def tag(cls, tag: str, w: WidgetType):
+        widget, tags, ids = cls.widgets[w._id]
+        tags.append(tag)
+        wg = widget, tags, ids
+        cls.widgets[w._id] = wg
+        if not tag in cls.tags.keys(): cls.tags.update({tag:[]})
+        cls.tags[tag].append(wg)
+
+    @classmethod
+    def id(cls, id: str, w: WidgetType):
+        widget, tags, ids = cls.widgets[w._id]
+        ids.append(id)
+        wg = widget, tags, ids
+        cls.widgets[w._id] = wg
+        cls.ids.update({id:wg})
+
+    @classmethod
+    def get_all_widgets(cls):
+        "Returns all widgets"
+        for id, (widget, tags, ids) in cls.widgets.items():
+            yield id, widget, tags, ids
+
+    @classmethod
+    def get_widgets_by_class(cls, c: type[WidgetType]):
+        "Returns all instances of class"
+        for id, (widget, tags, ids) in cls.widgets.items():
+            if isinstance(widget, c):
+                yield id, widget, tags, ids
+
+    @classmethod
+    def get_widgets_by_tag(cls, tag: str):
+        "Returns all instances of widgets with tag"
+        for (widget, tags, ids) in cls.tags[tag]:
+            yield widget, tags, ids
+
+    @classmethod
+    def get_widget_by_id(cls, id: str) -> WidgetInstance:
+        "Returns first instance of id"
+        return cls.ids[id]
+
+    language_keys:dict[str,str] = {
+        "English":"en_us",
+        "Deutsch":"de_eu",
+    }
+    translation:dict[str,str] = {}
+    @classmethod
+    def get_translation_map(cls,lang:str):
+        for plugin in os.listdir("plugins"):
+            if not os.path.exists(os.path.join("plugins",plugin,"resources/lang",lang+".lang")): continue
+            cls.translation = kv_file.interpret(resource.path(plugin, "lang/"+lang+".lang"))
+
+    @classmethod
+    def translate_widget(cls,widget:WidgetType):
+        if isinstance(widget._key, List):
+            translated = []
+            for key in widget._key:
+                if not key in cls.translation.keys():
+                    [log.warn("Missing translatable key for '%s'"%(k)) for k in widget._key]
+                    widget.configure(**{widget._tc:widget._key})
+                    return
+                translated.append(cls.translation[key])
+            widget.configure(**{widget._tc:translated})
+        elif isinstance(widget._key, str):
+            if not widget._key in cls.translation.keys():
+                log.warn("Missing translatable key for '%s'"%(widget._key))
+                widget.configure(**{widget._tc:widget._key})
+                return
+            widget.configure(**{widget._tc:cls.translation[widget._key]})
+        else: raise Exception("Hmmm. this should´nt happen...")
+
+    
+    @classmethod
+    def translate(cls,lang:str):
+        cls.get_translation_map(lang)
+
+        for id, widget, tags, ids in WidgetManager.get_all_widgets():
+            if not widget._translatable: continue
+
+            # UNREACHABLE! if translatable is true, 
+            # key will alway be something, this is 
+            # just to make pylance happy
+            if widget._key is None: continue
+
+            cls.translate_widget(widget)
+
+    theme = {}
+    colors = {}
+    @classmethod
+    def load_theme(cls):
+        cls.colors.update(kv_file.interpret(resource.path("Source", "theme/colors.kv")))
+
+        with open(resource.path("Source", "theme/class.json"),"r",encoding="utf-8") as rctf:
+            base_theme: dict[str,dict[str,Any]] = json.load(rctf)
+            rctf.close()
+
+        cls.theme = base_theme.copy()
+
+        for c, properties in base_theme.items():
+            for property, key in properties.items():
+                if not isinstance(key,str): continue
+                if key in cls.colors.keys():
+                    cls.theme[c][property] = cls.colors[key]
+                elif "liminal_client."+key+".color" in cls.colors.keys():
+                    cls.theme[c][property] = cls.colors["liminal_client."+key+".color"]
+
+        ThemeManager._currently_loaded_theme = "default"
+        ThemeManager.theme = cls.theme
+
+    @classmethod
+    def get_color(cls,id:str):
+        if id in cls.colors.keys():
+            return cls.colors[id]
+        elif "liminal_client."+id+".color" in cls.colors.keys():
+            return cls.colors["liminal_client."+id+".color"]
+        raise Exception("color id %s does not exist, perhaps it wasn't loaded?"%id)
+    color = get_color

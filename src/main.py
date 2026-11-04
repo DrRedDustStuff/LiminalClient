@@ -1,7 +1,7 @@
 import time
 from typing import Any, cast
 
-from customtkinter import CTk, CTkFont, CTkToplevel
+from customtkinter import CTk, CTkFont, CTkToplevel, CTkImage
 import customtkinter as ctk
 from tkinter import PhotoImage, DoubleVar, Frame as TkFrame
 
@@ -14,14 +14,14 @@ from blublib.ui.widgets import (
 from blublib.ui.ui_manager import WidgetManager
 
 from .pages import page
-from log import Logger
+from blublib.log import Logger
 
 from . import data
 from blublib import resource
+from blublib import svg_images
 from blublib.resource import Identifier
 from . import sound
 from .stack import Stack
-from . import button_functions
 from . import pages
 from . import liminal_lab
 from . import loggers
@@ -38,6 +38,7 @@ from blublib import kv_file
 
 import os.path
 
+
 def ping_server():
     try:
         response = requests.get(data.url, timeout=3)
@@ -50,8 +51,9 @@ def ping_server():
         print("timeout", te)
     except requests.exceptions.ConnectionError as ce:
         data.online = False
-        if ce.response is None: return 
-        
+        if ce.response is None:
+            return
+
         string = ce.response.reason
         loggers.load.error("Could not ping server, %s", string)
 
@@ -71,18 +73,45 @@ class LiminalClient:
     main_done_loading: PluginEvent[()] = PluginEvent()
     done_loading: PluginEvent[()] = PluginEvent()
     "called when the async load finnishes"
+
     def load(self):
         try:
             self.splash_screen.lift()
         except RuntimeError as re:
             print(re)
         resource.load()
+        for plugin in os.listdir("./plugins"):
+            for dirpath, dirnames, filenames in os.walk(
+                "./plugins/" + plugin + "/resources/image/"
+            ):
+                for filename in filenames:
+                    filename = dirpath + filename
+                    if not filename.endswith(".svg"):
+                        continue
+                    p = filename.removeprefix(
+                        "./plugins/%s/resources/image/" % plugin
+                    )
+                    loggers.load.info("Loading svg %s from plugin %s (%s)", p, plugin, filename)
+                    image = svg_images.generate_svg(
+                        filename, (data.SVG_QUALITY, data.SVG_QUALITY), {
+                            "currentColor": "#000000"
+                        }
+                    )
+                    resource._image_cache.update(
+                        {
+                            p: CTkImage(
+                                image, image, (data.SVG_QUALITY, data.SVG_QUALITY)
+                            )
+                        }
+                    )
+
         data.initialize()
-        if data.console_enabled: console.initialize()
-        self.main_done_loading.call()
+        if data.console_enabled:
+            console.initialize()
         while not self._wlb:
             time.sleep(0.25)
         self.splash_screen.destroy()
+        self.main_done_loading.call()
         ping_server()
         if not data.online:
             self.card(
@@ -96,23 +125,46 @@ class LiminalClient:
             versions = liminal_lab.liminal_client.get_versions()
             tags = liminal_lab.mod.tags(["all"])
         self.done_loading.call()
-        
-        self.ready = True
 
+        self.ready = True
 
     def card(self, title: str, text: str, color: str, hold_timeout: float = 2):
         self.card_queue.append((title, text, color, hold_timeout))
 
     def _info_card(self, header: str, text: str, color: str, timeout: float):
-        self.can_que = False
+        self.can_queue = False
         frame = Frame(self.tk, 250, 150, corner_radius=8, fg_color="#3A3A3A")
         Frame(frame, 250, 32, corner_radius=8, fg_color=color).place(x=0, y=0)
         Frame(frame, 250, 24, fg_color="#3A3A3A").place(x=0, y=16)
-        Label(frame, 250, 24, text=header, font=CTkFont(None, 24, "bold"), anchor="w", text_color="#F5EFD1").place(x=12, y=16).is_literal(True)
-        Label(frame, 250, 25, text=text, wraplength=200, anchor="nw", justify="left", compound="left", text_color="#CFC9AA").place(x=10, y=52).is_literal(True)
+        Label(
+            frame,
+            250,
+            24,
+            text=header,
+            font=CTkFont(None, 24, "bold"),
+            anchor="w",
+            text_color="#F5EFD1",
+        ).place(x=12, y=16).is_literal(True)
+        Label(
+            frame,
+            250,
+            25,
+            text=text,
+            wraplength=200,
+            anchor="nw",
+            justify="left",
+            compound="left",
+            text_color="#CFC9AA",
+        ).place(x=10, y=52).is_literal(True)
 
         sound.notification(sound.swoosh)
-        self.info_card_in(frame,0,-0.5,(self.tk.winfo_height() - 4) / self.tk.winfo_height(),timeout)
+        self.info_card_in(
+            frame,
+            0,
+            -0.5,
+            (self.tk.winfo_height() - 4) / self.tk.winfo_height(),
+            timeout,
+        )
 
     def info_card_in(
         self, card: Frame, time: float, relx: float, y: float, timeout: float
@@ -127,7 +179,7 @@ class LiminalClient:
     def info_card_hold(self, card: Frame, timeout: float, y: float):
         tm = timeout - 0.01
         if tm <= 0.001:
-            self.can_que = True
+            self.can_queue = True
             self.info_card_out(card, 0, 0, y)
             return
         self.tk.after(10, lambda: self.info_card_hold(card, tm, y))
@@ -141,10 +193,10 @@ class LiminalClient:
         self.tk.after(10, lambda: self.info_card_out(card, time + 0.01, rx, y))
 
     def run_card_queue(self):
-        if len(self.card_queue) > 0 and self.can_que:
+        if len(self.card_queue) > 0 and self.can_queue:
             title, text, color, timeout = self.card_queue.pop(0)
             self._info_card(title, text, color, timeout)
-        self.tk.after(10, self.run_card_queue)
+        self.tk.after(30, self.run_card_queue)
 
     def get_time(self):
         curr = time.time()
@@ -157,19 +209,18 @@ class LiminalClient:
         self.start_time = time.time()
         self._lt = time.time()
         WidgetManager.load_theme()
-        self.can_que = True
 
         loggers.main.info("(%s) Initializing CTk Window", self.get_time())
         self.tk = CTk()
         self.tk.geometry(f"1200x800")
         self.tk.minsize(1200, 800)
         self.tk.resizable(True, True)
-        self.tk.iconbitmap(default=resource.path("Source","image/icon.ico"))
+        self.tk.iconbitmap(default=resource.path("Source", "image/icon.ico"))
         self.tk.title("Liminal Client")
 
     def start(self):
         loggers.main.info("(%s) Starting load thread", self.get_time())
-        self.splash_screen = Frame(self.tk).place(relwidth=1,relheight=1)
+        self.splash_screen = Frame(self.tk).place(relwidth=1, relheight=1)
         self.splash(self.splash_screen)
         self.ready = False
         self.load_thread = Thread(target=self.load)
@@ -183,14 +234,16 @@ class LiminalClient:
         loggers.main.info("Finding and loading Plugins")
         PluginManager.load()
         PluginManager.load_all()
-        loggers.main.info("(%s) Loading all non dynamic widgets", self.get_time())
+        loggers.main.info("(%s) Loading all static widgets", self.get_time())
         self.widgets(self.tk)
         self.all_widgets_loaded.call()
         self.settings.load()
         self._wlb = True
         loggers.main.info("(%s) Translating loaded widgets", self.get_time())
         WidgetManager.translate("en_us")
-        loggers.main.info("(%s) Starting to poll card queue (every 10ms)", self.get_time())
+        loggers.main.info(
+            "(%s) Starting to poll card queue (every 10ms)", self.get_time()
+        )
         self.run_card_queue()
         if data.prefix == "beta":
             self.tk.after(
@@ -216,6 +269,8 @@ class LiminalClient:
         loggers.main.info("Initializing Plugins")
         PluginManager.initialize_all()
 
+        self.can_queue = True
+
     def mainloop(self):
         loggers.main.info("Starting tkinter mainloop")
         self.tk.mainloop()
@@ -229,7 +284,7 @@ class LiminalClient:
         loggers.main.info("Unloading all plugins")
         PluginManager.unload_all()
         loggers.main.info("Saving logs")
-        for _,logger in Logger._loggers.items():
+        for _, logger in Logger._loggers.items():
             self.save_log(logger)
         self.load_thread.join()
 
@@ -240,8 +295,7 @@ class LiminalClient:
     pages_initialized: PluginEvent[()] = PluginEvent()
     "called when all pages have loaded"
 
-    def splash(self, master):
-        ...
+    def splash(self, master): ...
 
     def widgets(self, master):
         self.head_icon = (
@@ -269,7 +323,7 @@ class LiminalClient:
 
         self.main = Frame(master, corner_radius=24, border_width=3)
         self.main.place(x=60, y=50, relwidth=1, relheight=1)
-        
+
         self.main_widgets_loaded.call()
 
         self.page_initialize(master)
@@ -277,9 +331,14 @@ class LiminalClient:
         self.pages_initialized.call()
 
     def page_initialize(self, master):
-        self.side_buttons = Frame(master, 50, 0, 0, 0, WidgetManager.get_color("liminal_client.root_background.color")).place(
-            x=5, y=60, relheight=1
-        )
+        self.side_buttons = Frame(
+            master,
+            50,
+            0,
+            0,
+            0,
+            WidgetManager.get_color("liminal_client.root_background.color"),
+        ).place(x=5, y=60, relheight=1)
 
         for page in pages.page.pages:
             page = page(self.main)
@@ -302,6 +361,7 @@ class LiminalClient:
         def _page_button(pageid=pageid):
             self.page_stack.clear()
             self.show_page(pageid)
+
         return (
             Button(
                 self.side_buttons,
@@ -312,11 +372,7 @@ class LiminalClient:
                 text="",
                 image=resource.image(
                     plugin,
-                    "pageicon/"
-                    + pageid.getNamespace()
-                    + "/"
-                    + pageid.getPath()
-                    + ".png",
+                    "pageicon/" + pageid.getPath() + ".png",
                     (30, 30),
                 ),
                 command=_page_button,
@@ -329,7 +385,7 @@ class LiminalClient:
         if id in self.pages.keys():
             raise Exception("Page %s already exists" % id)
         self.pages.update({(id.getNamespace() + "." + id.getPath()): frame})
-        self.page_button(plugin,id)
+        self.page_button(plugin, id)
 
     def show_page(self, id: Identifier):
         _id = id.getNamespace() + "." + id.getPath()
@@ -354,20 +410,21 @@ class LiminalClient:
         self.page_stack.push(_id)
         loggers.liminal_client.debug("Page stack: %s", self.page_stack)
 
-    def save_log(self, log:Logger):
+    def save_log(self, log: Logger):
         import os.path
-        if not os.path.exists(resource._appdata+"logs/"):
-            os.mkdir(resource._appdata+"logs/")
-        log.save(resource._appdata+"logs/"+log.name+".log")
+
+        if not os.path.exists(resource._appdata + "logs/"):
+            os.mkdir(resource._appdata + "logs/")
+        log.save(resource._appdata + "logs/" + log.name + ".log")
 
     # Addon utility
     def add_color_file(self, plugin: str, file: str):
-        path = os.path.join("./plugins/"+plugin+"/resources/", file)
+        path = os.path.join("./plugins/" + plugin + "/resources/", file)
 
         data = kv_file.interpret(path)
 
         WidgetManager.colors.update(data)
-        
+
 
 _instance: LiminalClient | None = None
 

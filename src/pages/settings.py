@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal, TypeAlias, cast
 from blublib.ui.labeled_slider import LabeledSlider
 from blublib import sound
 from blublib import resource
-import log
+from blublib import log
 from blublib.plugin.plugin_event import PluginEvent
 from blublib.resource import Identifier
 import json
@@ -75,7 +75,13 @@ class Settings(Page):
             logging_category
         )
 
+        debug_category = Identifier.id("debug")
+        self.category(debug_category)
+        self.header(Identifier.id("debug"), debug_category)
+
         Settings.load_settings.call()
+
+        
 
     def category(self, id: Identifier, parent: Identifier | None = None):
         frame = (
@@ -162,6 +168,7 @@ class Settings(Page):
             )
             .pack(padx=10, pady=5, anchor="w")
             .is_literal(True)
+            .id(varname)
         )
 
         def _command(value: str):
@@ -182,24 +189,38 @@ class Settings(Page):
         with open(resource.datapath("settings.json"), "r", encoding="utf-8") as rsf:
             self.settings.update(json.load(rsf))
             rsf.close()
-        for id, val in self.settings.items():
+        for id, val in self.settings.copy().items():
             namespace, name, type = id.split(".", 2)
             type = cast(SettingsWidgetType, type)
+            if type == "dropdown":
+                t = "optionmenu"
+            else:
+                t = type
             try:
                 settings_widget = WidgetManager.get_widget_by_id(
-                    "%s.%s.%s" % (namespace, name, type)
+                    "%s.%s.%s" % (namespace, name, t)
                 )[0]
-            except: continue
+            except Exception as e:
+                log.error("%s: %s", e.__class__.__name__,str(e))
+                self.settings.pop(id)
+                continue
             match type:
                 case "slider":
                     slider: Slider = settings_widget
                     slider.set(float(val))
+                    if slider._command is not None:
+                        slider._command(float(val))
                 case "dropdown":
                     dropdown: OptionMenu = settings_widget
                     dropdown.set(val)
+                    if dropdown._command is not None:
+                        dropdown._command(val)
                 case "switch":
+                    print(val)
                     zwitch: Switch = settings_widget
                     zwitch.configure(False, variable=bool(val))
+                    if zwitch._command is not None:
+                        zwitch._command(bool(val))
 
     def save(self):
         with open(resource.datapath("settings.json"), "w", encoding="utf-8") as wsf:

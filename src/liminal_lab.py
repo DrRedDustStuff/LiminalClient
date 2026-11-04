@@ -2,7 +2,7 @@ from typing import Callable, Any
 
 import requests as __0
 from . import data as __1
-import log as __2
+import blublib.log as __2
 
 
 def _check(url_postfix: str):

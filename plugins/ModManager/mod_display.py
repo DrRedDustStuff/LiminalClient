@@ -1,7 +1,7 @@
 from typing import Any
 
 from blublib.ui.widgets import (
-    Frame, 
+    Frame,
     Label,
     Switch,
     Button,
@@ -17,8 +17,10 @@ from . import loggers
 import os
 import shutil
 
-def prettify(state:bool):
+
+def prettify(state: bool):
     return "Enabled" if state else "Disabled"
+
 
 class ModDisplay(Frame):
     def __init__(
@@ -39,45 +41,37 @@ class ModDisplay(Frame):
         self._me = mod_enabled
 
         self._mid = mod_id
-        widgets(self, mod_name, mod_creator, mod_id)
-
-        self.image: Label = WidgetManager.get_widget_by_id(
-            str_id(mod_name, mod_creator, mod_id, "Image")
-        )[0]
-        self.infc_name: Label = WidgetManager.get_widget_by_id(
-            str_id(mod_name, mod_creator, mod_id, "Name")
-        )[0]
-        self.infc_creator: Label = WidgetManager.get_widget_by_id(
-            str_id(mod_name, mod_creator, mod_id, "Creator")
-        )[0]
-
-        self.mng_delete: Button = WidgetManager.get_widget_by_id(
-            str_id(mod_name,mod_creator,mod_id,"Delete")
-        )[0]
+        (
+            self.image,
+            self.infc_name,
+            self.infc_creator,
+            self.mng_delete,
+            self.mng_enable,
+        ) = widgets(self, mod_name, mod_creator, mod_id)
 
         self.mng_delete.configure(command=self.delete)
-
-        self.mng_enable: Switch = WidgetManager.get_widget_by_id(
-            str_id(mod_name,mod_creator,mod_id,"Toggle")
-        )[0]
 
         self.mng_enable.configure(command=self.toggle)
         self.mng_enable.configure(variable=BooleanVar(value=self._me))
 
-    def get_postfix(self,state:bool):
+    def get_postfix(self, state: bool):
         return ".pak" if state else ".pak.dis"
 
     def toggle(self):
         new = self.mng_enable.get() == 1
-        loggers.mod_manager.info("Toggled mod %s from %s to %s",self._mn,prettify(self._me),prettify(new))
+        loggers.mod_manager.info(
+            "Toggled mod %s from %s to %s", self._mn, prettify(self._me), prettify(new)
+        )
         os.rename(
-            data.etbPath+data.modsSuffix+self._mn+self.get_postfix(self._me),
-            data.etbPath+data.modsSuffix+self._mn+self.get_postfix(new),
+            data.etbPath + data.modsSuffix + self._mn + self.get_postfix(self._me),
+            data.etbPath + data.modsSuffix + self._mn + self.get_postfix(new),
         )
         self._me = new
 
     def delete(self):
-        os.remove(data.etbPath+data.modsSuffix+self._mn+self.get_postfix(self._me))
+        os.remove(
+            data.etbPath + data.modsSuffix + self._mn + self.get_postfix(self._me)
+        )
         self.manager.refresh_mods(None)
 
     def configure(self, require_redraw=False, **kwargs):

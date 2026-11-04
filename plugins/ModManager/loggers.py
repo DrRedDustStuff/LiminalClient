@@ -1,4 +1,4 @@
-import log
+from blublib import log
 from src import loggers
 
 

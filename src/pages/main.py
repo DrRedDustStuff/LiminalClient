@@ -9,38 +9,107 @@ from blublib.ui.widgets import (
     Entry,
 )
 from blublib import sound
+from blublib.plugin.plugin_event import PluginEvent
 from blublib import resource
 from blublib.resource import Identifier
-from .. import button_functions
 from src import main
+
+from .. import data
+import subprocess
+import threading
+import time
+import winreg
+from tkinter import messagebox
+from .. import loggers
 
 class Main(Page):
     key = Identifier.id("main")
 
+    game_started: PluginEvent = PluginEvent()
+    game_stopped: PluginEvent = PluginEvent()
+
+    def run_game(self):
+        loggers.liminal_client.info("Running Escape the Backrooms")
+        self.run_game_button.configure(image=resource.image("Source", "refresh.png"))
+        subprocess.Popen([data.steamPath,"-applaunch",str(data.etbId)])
+        self.game_running = True
+        self.startup_frames: int = 16
+
+    def run_game_offline(self):
+        self.run_game_offline_button.configure(image=resource.image("Source", "refresh.png"))
+        messagebox.showinfo(
+            "Important!",
+            "This will run the game directly without steam which due to "
+            "limitations of python libraries will freeze Liminal Client. If you "
+            "wish to avoid this, press Run Game instead\n" + ("-" * 79) + "\n"
+            "Note: This may get removed in future updates",
+        )
+        cmd = [
+            "%sEscapeTheBackrooms/Binaries/Win64/Backrooms-Win64-Shipping.exe"
+            % data.etbPath
+        ]
+        self.popen = subprocess.Popen(cmd)
+        self.game_started.call()
+
+    def get_running_app_id(self):
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Valve\Steam"
+        )
+        app_id, _ = winreg.QueryValueEx(key, "RunningAppId")
+        winreg.CloseKey(key)
+        return app_id
+        
+    def poll_game_alive(self):
+        while True:
+            time.sleep(0.1)
+            if not self.game_running: continue
+
+            app_id = self.get_running_app_id()
+            
+            if app_id == 0:
+                if self.startup_frames >= 0:
+                    self.startup_frames -= 1
+                    continue
+                self.game_running = False
+                self.game_stopped.call()
+
+            elif app_id == data.etbId:
+                self.game_running = True
+
     def widgets(self):
+        self.popen = None
+        self.game_running = False
+        self.coroutine = threading.Thread(target=self.poll_game_alive, daemon=True)
+        self.coroutine.start()
         self.instance = main.get_instance()
 
+        def game_stopped():
+            # self.run_game_offline_button.configure(image=resource.image("Source", "round-play.png"))
+            self.run_game_button.configure(image=resource.image("Source", "round-play.png"))
+        self.game_stopped.bind(game_stopped) # pyright: ignore[reportArgumentType]
+
         header = Frame(self).pack(pady=(2, 0), fill="x", expand=True)
-        run_game_button = Button(
+        self.run_game_button = Button(
             header,
             text=Identifier.id("run_game"),
             width=0,
             height=42,
             font=CTkFont(None, 16, "bold"),
             image=resource.image("Source", "round-play.png"),
-            command=button_functions.run_game,
+            command=self.run_game,
         ).pack(side="right", pady=12, padx=4)
-        run_game_offline_button = Button(
+        self.run_game_offline_button = Button(
             header,
             text=Identifier.id("run_game_offline"),
             width=0,
             height=42,
             font=CTkFont(None, 16, "bold"),
             image=resource.image("Source", "round-play.png"),
-            command=button_functions.run_game_offline,
-        ).pack(side="right", pady=12, padx=4)
+            command=self.run_game_offline,
+        )#.pack(side="right", pady=12, padx=4)
 
-        refresh_mods = Button(
+        self.refresh_mods = Button(
             header,
             text=Identifier.id("refresh_mods"),
             width=0,
@@ -49,21 +118,21 @@ class Main(Page):
             image=resource.image("Source","refresh.png"),
         ).pack(side="left", pady=14, padx=4)
 
-        mods_header = Label(
+        self.mods_header = Label(
             self,
             text=Identifier.id("mods.header"),
             font=CTkFont(None, 42, "bold"),
         ).pack(padx=20, pady=10)
         hero = Frame(self).pack(fill="x", expand=True)
 
-        upload_files = Button(
+        self.upload_files = Button(
             hero,
             130,
             text=Identifier.id("upload_files"),
             image=resource.image("Source","folder-plus.png"),
         ).pack(side="right", padx=2)
 
-        browse_content = Button(
+        self.browse_content = Button(
             hero,
             140,
             text=Identifier.id("browse_content"),
@@ -72,7 +141,7 @@ class Main(Page):
             command=lambda: self.instance.show_page(Identifier.id("mod_download"))
         ).pack(side="right", padx=2)
 
-        mod_search = Entry(
+        self.mod_search = Entry(
             hero,
             placeholder_text=Identifier.id("mod_search"),  # , state="disabled"
         ).pack(side="left", fill="x", expand=True, padx=2)

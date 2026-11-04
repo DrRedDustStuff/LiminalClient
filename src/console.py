@@ -5,7 +5,7 @@ from tkinter import (
     Event,
 )
 from typing import Callable
-from log import Logger
+from blublib.log import Logger
 
 CMD = Callable[[list[str]], int]
 
@@ -17,6 +17,7 @@ class ctx:
     text: Text
     entry: Entry
 
+    variables: dict[str, int] = {}
     commands: dict[str, CMD] = {}
 
     queued_text: list[str] = []
